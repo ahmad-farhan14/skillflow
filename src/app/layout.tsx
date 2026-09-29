@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { SkillFlowProvider } from "../context/SkillFlowContext";
 
@@ -40,11 +41,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${inter.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body className="min-h-full flex flex-col font-sans bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`(() => {
+            try {
+              const savedTheme = localStorage.getItem("skillflow_theme_v1");
+              const isDark = savedTheme
+                ? savedTheme === "dark"
+                : window.matchMedia("(prefers-color-scheme: dark)").matches;
+              document.documentElement.classList.toggle("dark", isDark);
+              document.documentElement.style.colorScheme = isDark ? "dark" : "light";
+            } catch {}
+          })();`}
+        </Script>
         <SkillFlowProvider>{children}</SkillFlowProvider>
       </body>
     </html>

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   :root {
     --brand-primary: #2563eb;
@@ -21,12 +23,16 @@
     --brand-streak: #f59e0b;
     --brand-streak-glow: #78350f;
     --brand-success: #10b981;
-    --bg-page: #0b0f19;
-    --bg-card: #111827;
-    --bg-card-subtle: #1e293b;
-    --border-color: #1f2937;
+    --bg-page: #131314;
+    --bg-card: #1e1e1e;
+    --bg-card-subtle: #2e2e2e;
+    --border-color: #2e2e2e;
     --text-primary: #f8fafc;
     --text-muted: #94a3b8;
+    --color-slate-950: #131314;
+    --color-slate-900: #1e1e1e;
+    --color-slate-800: #2e2e2e;
+    --color-slate-700: #334155;
   }
 }
 
@@ -35,7 +41,9 @@ body {
   color: var(--text-primary);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   min-height: 100vh;
-  transition: background-color 0.25s ease, color 0.25s ease;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
 }
 
 /* Custom Scrollbar */
@@ -73,14 +81,15 @@ body {
 }
 
 .dark .glass-panel {
-  background: rgba(17, 24, 39, 0.85);
+  background: rgba(30, 30, 30, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 /* Shimmer & Glow effects */
 @keyframes flame-pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.45));
   }

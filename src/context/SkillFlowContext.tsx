@@ -1,9 +1,27 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
 import confetti from "canvas-confetti";
-import { Roadmap, UserProfile, Note, RoadmapStats, Topic, Module } from "../types";
-import { initialRoadmaps, initialUserProfile, initialNotes } from "../data/seedData";
+import {
+  Roadmap,
+  UserProfile,
+  Note,
+  RoadmapStats,
+  Topic,
+  Module,
+} from "../types";
+import {
+  initialRoadmaps,
+  initialUserProfile,
+  initialNotes,
+} from "../data/seedData";
 
 interface SkillFlowContextType {
   roadmaps: Roadmap[];
@@ -22,7 +40,12 @@ interface SkillFlowContextType {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
   toggleTopicCompletion: (topicId: string) => void;
-  addCustomTopic: (moduleId: string, title: string, resourceUrl?: string, difficulty?: "Beginner" | "Intermediate" | "Advanced") => void;
+  addCustomTopic: (
+    moduleId: string,
+    title: string,
+    resourceUrl?: string,
+    difficulty?: "Beginner" | "Intermediate" | "Advanced",
+  ) => void;
   saveCurrentNote: (content: string) => void;
   switchRoadmap: (slug: string) => void;
   triggerCelebration: () => void;
@@ -30,7 +53,9 @@ interface SkillFlowContextType {
   isHydrated: boolean;
 }
 
-const SkillFlowContext = createContext<SkillFlowContextType | undefined>(undefined);
+const SkillFlowContext = createContext<SkillFlowContextType | undefined>(
+  undefined,
+);
 
 const STORAGE_KEYS = {
   ROADMAPS: "skillflow_roadmaps_v1",
@@ -43,7 +68,10 @@ const STORAGE_KEYS = {
 // Clean synthesized pleasant audio chime using Web Audio API
 function playChime(success100 = false) {
   try {
-    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const AudioCtx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext })
+        .webkitAudioContext;
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
     const now = ctx.currentTime;
@@ -88,11 +116,18 @@ function playChime(success100 = false) {
 
 export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>(initialRoadmaps);
-  const [userProfile, setUserProfile] = useState<UserProfile>(initialUserProfile);
+  const [userProfile, setUserProfile] =
+    useState<UserProfile>(initialUserProfile);
   const [notes, setNotes] = useState<Note[]>(initialNotes);
-  const [activeRoadmapSlug, setActiveRoadmapSlug] = useState<string>("frontend-web-developer");
-  const [selectedModuleIdForNotes, setSelectedModuleIdForNotes] = useState<string | null>(null);
-  const [filterStatus, setFilterStatus] = useState<"all" | "completed" | "remaining">("all");
+  const [activeRoadmapSlug, setActiveRoadmapSlug] = useState<string>(
+    "frontend-web-developer",
+  );
+  const [selectedModuleIdForNotes, setSelectedModuleIdForNotes] = useState<
+    string | null
+  >(null);
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "completed" | "remaining"
+  >("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
@@ -110,8 +145,10 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
       if (savedProfile) setUserProfile(JSON.parse(savedProfile));
       if (savedNotes) setNotes(JSON.parse(savedNotes));
       if (savedSlug) setActiveRoadmapSlug(savedSlug);
-      
-      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+      const prefersDark =
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
       const initialDark = savedTheme ? savedTheme === "dark" : prefersDark;
       setIsDarkMode(initialDark);
       if (initialDark) {
@@ -119,6 +156,9 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
       } else {
         document.documentElement.classList.remove("dark");
       }
+      document.documentElement.style.colorScheme = initialDark
+        ? "dark"
+        : "light";
     } catch (e) {
       console.error("Failed to load SkillFlow state from localStorage", e);
     } finally {
@@ -165,6 +205,7 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
         document.documentElement.classList.remove("dark");
         localStorage.setItem(STORAGE_KEYS.THEME, "light");
       }
+      document.documentElement.style.colorScheme = next ? "dark" : "light";
       return next;
     });
   }, []);
@@ -195,9 +236,12 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
       if (modAllDone) completedModules += 1;
     });
 
-    const completionPercentage = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
+    const completionPercentage =
+      totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
     const estimatedHours = activeRoadmap.estimated_hours;
-    const completedHours = Math.round((completionPercentage / 100) * estimatedHours);
+    const completedHours = Math.round(
+      (completionPercentage / 100) * estimatedHours,
+    );
 
     return {
       totalTopics,
@@ -250,14 +294,16 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
                   return {
                     ...t,
                     is_completed: isNowCompleted,
-                    completed_at: isNowCompleted ? new Date().toISOString() : null,
+                    completed_at: isNowCompleted
+                      ? new Date().toISOString()
+                      : null,
                   };
                 }
                 return t;
               }),
             })),
           };
-        })
+        }),
       );
 
       // Play chime audio
@@ -270,7 +316,9 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
       setUserProfile((prevProfile: UserProfile) => {
         const lastActive = prevProfile.last_active_date;
         const isToday = lastActive === today;
-        const newStreak = isToday ? prevProfile.current_streak : prevProfile.current_streak + 1;
+        const newStreak = isToday
+          ? prevProfile.current_streak
+          : prevProfile.current_streak + 1;
         const weekly = { ...prevProfile.weekly_activity, [today]: true };
 
         return {
@@ -289,12 +337,17 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
         }, 200);
       }
     },
-    [activeRoadmap.id, stats, triggerCelebration]
+    [activeRoadmap.id, stats, triggerCelebration],
   );
 
   // Add custom topic inline
   const addCustomTopic = useCallback(
-    (moduleId: string, title: string, resourceUrl?: string, difficulty: "Beginner" | "Intermediate" | "Advanced" = "Beginner") => {
+    (
+      moduleId: string,
+      title: string,
+      resourceUrl?: string,
+      difficulty: "Beginner" | "Intermediate" | "Advanced" = "Beginner",
+    ) => {
       if (!title.trim()) return;
 
       const newTopic: Topic = {
@@ -322,10 +375,10 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
               };
             }),
           };
-        })
+        }),
       );
     },
-    [activeRoadmap.id]
+    [activeRoadmap.id],
   );
 
   // Get active note content (either for selected module or for the active roadmap)
@@ -333,7 +386,9 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
     const existing = notes.find(
       (n: Note) =>
         n.roadmap_id === activeRoadmap.id &&
-        (selectedModuleIdForNotes ? n.module_id === selectedModuleIdForNotes : n.module_id === null || !n.module_id)
+        (selectedModuleIdForNotes
+          ? n.module_id === selectedModuleIdForNotes
+          : n.module_id === null || !n.module_id),
     );
     return existing ? existing.content : "";
   }, [notes, activeRoadmap.id, selectedModuleIdForNotes]);
@@ -345,7 +400,9 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
         const existingIndex = prevNotes.findIndex(
           (n: Note) =>
             n.roadmap_id === activeRoadmap.id &&
-            (selectedModuleIdForNotes ? n.module_id === selectedModuleIdForNotes : n.module_id === null || !n.module_id)
+            (selectedModuleIdForNotes
+              ? n.module_id === selectedModuleIdForNotes
+              : n.module_id === null || !n.module_id),
         );
 
         if (existingIndex >= 0) {
@@ -370,7 +427,7 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
         }
       });
     },
-    [activeRoadmap.id, selectedModuleIdForNotes, userProfile.id]
+    [activeRoadmap.id, selectedModuleIdForNotes, userProfile.id],
   );
 
   // Switch roadmap
@@ -381,7 +438,11 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
 
   // Reset to default seed
   const resetToDefaultSeed = useCallback(() => {
-    if (confirm("Reset SkillFlow data back to default roadmap presets & progress?")) {
+    if (
+      confirm(
+        "Reset SkillFlow data back to default roadmap presets & progress?",
+      )
+    ) {
       setRoadmaps(initialRoadmaps);
       setUserProfile(initialUserProfile);
       setNotes(initialNotes);
@@ -417,7 +478,11 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
     isHydrated,
   };
 
-  return <SkillFlowContext.Provider value={value}>{children}</SkillFlowContext.Provider>;
+  return (
+    <SkillFlowContext.Provider value={value}>
+      {children}
+    </SkillFlowContext.Provider>
+  );
 }
 
 export function useSkillFlow() {
