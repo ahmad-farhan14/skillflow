@@ -7,5 +7,5 @@ interface SignupPageProps {
 export default async function SignupPage({ searchParams }: SignupPageProps) {
   const { next } = await searchParams;
 
-  return <AuthForm mode="signup" nextPath={next ?? "/"} />;
+  return <AuthForm mode="signup" nextPath={next ?? "/dashboard"} />;
 }

@@ -10,7 +10,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <AuthForm
       mode="login"
-      nextPath={next ?? "/"}
+      nextPath={next ?? "/dashboard"}
       initialError={error === "confirmation" ? "That confirmation link is invalid or expired. Request a new signup email and try again." : undefined}
     />
   );

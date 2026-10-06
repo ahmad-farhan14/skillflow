@@ -37,7 +37,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b0f17" },
+    { media: "(prefers-color-scheme: dark)", color: "#131314" },
   ],
 };
 
@@ -60,9 +60,7 @@ export default function RootLayout({
           {`(() => {
             try {
               const savedTheme = localStorage.getItem("skillflow_theme_v1");
-              const isDark = savedTheme
-                ? savedTheme === "dark"
-                : window.matchMedia("(prefers-color-scheme: dark)").matches;
+              const isDark = savedTheme ? savedTheme === "dark" : true;
               document.documentElement.classList.toggle("dark", isDark);
               document.documentElement.style.colorScheme = isDark ? "dark" : "light";
             } catch {}

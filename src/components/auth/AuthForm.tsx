@@ -6,6 +6,7 @@ import {
   signInWithPassword,
   signUp,
 } from "@/app/actions/auth";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface AuthFormProps {
   mode: "login" | "signup";
@@ -21,11 +22,14 @@ export function AuthForm({ mode, nextPath, initialError }: AuthFormProps) {
   const isSignup = mode === "signup";
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#0B0F17] px-4 py-12 text-slate-100">
+    <main className="relative flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 text-slate-900 dark:bg-[#131314] dark:text-white">
+      <div className="absolute right-4 top-4 sm:right-6 sm:top-6">
+        <ThemeToggle />
+      </div>
       <section className="w-full max-w-md">
         <Link
           href="/"
-          className="mb-8 inline-flex items-center gap-2 text-sm font-semibold tracking-tight text-white"
+          className="mb-8 inline-flex items-center gap-2 text-sm font-semibold tracking-tight text-slate-950 dark:text-white"
         >
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-xs">
             SF
@@ -33,15 +37,15 @@ export function AuthForm({ mode, nextPath, initialError }: AuthFormProps) {
           SkillFlow
         </Link>
 
-        <div className="rounded-2xl border border-white/10 bg-[#121824] p-6 shadow-2xl shadow-black/20 sm:p-8">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5 dark:border-white/10 dark:bg-[#1E1E1F] dark:shadow-black/20 sm:p-8">
           <div className="mb-7">
             <p className="mb-2 font-mono text-xs uppercase tracking-wider text-blue-400">
               Your learning workspace
             </p>
-            <h1 className="text-2xl font-semibold tracking-tight text-white">
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">
               {isSignup ? "Create your account" : "Welcome back"}
             </h1>
-            <p className="mt-2 text-sm leading-6 text-slate-400">
+            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-[#8E8E93]">
               {isSignup
                 ? "Sign up to continue your roadmap and keep your progress in sync."
                 : "Sign in to pick up where you left off."}
@@ -53,7 +57,7 @@ export function AuthForm({ mode, nextPath, initialError }: AuthFormProps) {
             <div>
               <label
                 htmlFor="email"
-                className="mb-2 block text-sm font-medium text-slate-200"
+                className="mb-2 block text-sm font-medium text-slate-700 dark:text-[#C4C7C5]"
               >
                 Email
               </label>
@@ -65,14 +69,14 @@ export function AuthForm({ mode, nextPath, initialError }: AuthFormProps) {
                 required
                 maxLength={254}
                 placeholder="you@example.com"
-                className="w-full rounded-lg border border-white/10 bg-[#0B0F17] px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-white/10 dark:bg-[#131314] dark:text-white dark:placeholder:text-slate-500"
               />
             </div>
 
             <div>
               <label
                 htmlFor="password"
-                className="mb-2 block text-sm font-medium text-slate-200"
+                className="mb-2 block text-sm font-medium text-slate-700 dark:text-[#C4C7C5]"
               >
                 Password
               </label>
@@ -85,10 +89,10 @@ export function AuthForm({ mode, nextPath, initialError }: AuthFormProps) {
                 minLength={isSignup ? 8 : undefined}
                 maxLength={128}
                 placeholder={isSignup ? "At least 8 characters" : "Your password"}
-                className="w-full rounded-lg border border-white/10 bg-[#0B0F17] px-3.5 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-white/10 dark:bg-[#131314] dark:text-white dark:placeholder:text-slate-500"
               />
               {isSignup && (
-                <p className="mt-2 text-xs text-slate-500">
+                <p className="mt-2 text-xs text-slate-500 dark:text-[#8E8E93]">
                   Use at least 8 characters.
                 </p>
               )}
@@ -126,10 +130,13 @@ export function AuthForm({ mode, nextPath, initialError }: AuthFormProps) {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-slate-400">
+          <p className="mt-6 text-center text-sm text-slate-600 dark:text-[#8E8E93]">
             {isSignup ? "Already have an account?" : "New to SkillFlow?"}{" "}
             <Link
-              href={isSignup ? "/login" : "/signup"}
+              href={{
+                pathname: isSignup ? "/login" : "/signup",
+                query: nextPath === "/dashboard" ? undefined : { next: nextPath },
+              }}
               className="font-medium text-blue-400 hover:text-blue-300"
             >
               {isSignup ? "Sign in" : "Create an account"}

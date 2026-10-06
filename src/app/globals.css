@@ -24,16 +24,18 @@
     --brand-primary: #3b82f6;
     --brand-primary-hover: #2563eb;
     --brand-success: #10b981;
-    --bg-page: #0b0f17;
-    --bg-card: #121824;
-    --bg-card-subtle: #181f2b;
-    --border-color: #1e293b;
-    --text-primary: #f8fafc;
-    --text-muted: #94a3b8;
-    --color-slate-950: #0b0f17;
-    --color-slate-900: #121824;
-    --color-slate-800: #1e293b;
-    --color-slate-700: #334155;
+    --bg-page: #131314;
+    --bg-card: #1e1e1f;
+    --bg-card-subtle: #242426;
+    --border-color: #2e2e2f;
+    --text-primary: #ffffff;
+    --text-muted: #8e8e93;
+    --color-slate-950: #131314;
+    --color-slate-900: #1e1e1f;
+    --color-slate-800: #2e2e2f;
+    --color-slate-700: #3b3b3d;
+    --color-slate-400: #8e8e93;
+    --color-slate-300: #c4c7c5;
   }
 }
 
@@ -82,7 +84,7 @@ body {
 }
 
 .dark .glass-panel {
-  background: rgba(18, 24, 36, 0.85);
+  background: rgba(30, 30, 31, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }

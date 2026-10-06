@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
+import { isSupabaseConfigured } from "@/utils/supabase/config";
 
 export interface AuthFormState {
   error?: string;
@@ -40,13 +41,20 @@ function getRedirectPath(value: FormDataEntryValue | null) {
   ) {
     return value;
   }
-  return "/";
+  return "/dashboard";
 }
 
 export async function signInWithPassword(
   _previousState: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
+  if (!isSupabaseConfigured()) {
+    return {
+      error:
+        "Authentication is not configured yet. Set your Supabase URL and publishable key to continue.",
+    };
+  }
+
   const credentials = validateCredentials(formData, false);
   if ("error" in credentials) return credentials;
 
@@ -64,6 +72,13 @@ export async function signUp(
   _previousState: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
+  if (!isSupabaseConfigured()) {
+    return {
+      error:
+        "Authentication is not configured yet. Set your Supabase URL and publishable key to continue.",
+    };
+  }
+
   const credentials = validateCredentials(formData, true);
   if ("error" in credentials) return credentials;
 

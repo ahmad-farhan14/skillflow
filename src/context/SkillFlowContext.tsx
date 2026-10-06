@@ -146,10 +146,7 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
       if (savedNotes) setNotes(JSON.parse(savedNotes));
       if (savedSlug) setActiveRoadmapSlug(savedSlug);
 
-      const prefersDark =
-        window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const initialDark = savedTheme ? savedTheme === "dark" : prefersDark;
+      const initialDark = savedTheme ? savedTheme === "dark" : true;
       setIsDarkMode(initialDark);
       if (initialDark) {
         document.documentElement.classList.add("dark");

@@ -30,8 +30,9 @@ Authentication uses Supabase email/password auth with cookie-based sessions.
 2. In the Supabase dashboard, enable Email authentication and add
    `http://localhost:3000/auth/confirm` to the project's allowed redirect URLs.
    Add your deployed `/auth/confirm` URL before deploying.
-3. Start the app with `npm run dev`. The roadmap is protected; sign in at
-   `/login` or create an account at `/signup`.
+3. Start the app with `npm run dev`. The public landing page is at `/`; sign
+   in at `/login` or create an account at `/signup`. The protected workspace
+   is at `/dashboard`.
 
 ## Learn More
 

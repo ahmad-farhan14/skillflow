@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/utils/supabase/middleware";
+import { isSupabaseConfigured } from "@/utils/supabase/config";
 
 function copyCookies(from: NextResponse, to: NextResponse) {
   for (const cookie of from.cookies.getAll()) {
@@ -9,28 +10,53 @@ function copyCookies(from: NextResponse, to: NextResponse) {
 }
 
 export async function proxy(request: NextRequest) {
-  const { response, user } = await updateSession(request);
-  const isAuthPage =
-    request.nextUrl.pathname === "/login" ||
-    request.nextUrl.pathname === "/signup";
-  const isAuthCallback = request.nextUrl.pathname === "/auth/confirm";
+  const pathname = request.nextUrl.pathname;
+  const isRoot = pathname === "/";
+  const isDashboard = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  const isAuthPage = pathname === "/login" || pathname === "/signup";
+  const isAuthCallback = pathname === "/auth/confirm";
+  if (!isRoot && !isDashboard && !isAuthPage && !isAuthCallback) {
+    return NextResponse.next();
+  }
+  if (!isSupabaseConfigured()) {
+    if (isDashboard) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set(
+        "next",
+        `${pathname}${request.nextUrl.search}`,
+      );
+      return NextResponse.redirect(loginUrl);
+    }
+    return NextResponse.next();
+  }
 
-  if (!user && !isAuthPage && !isAuthCallback) {
+  const { response, user } = await updateSession(request);
+
+  if (!user && isDashboard) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set(
       "next",
-      `${request.nextUrl.pathname}${request.nextUrl.search}`,
+      `${pathname}${request.nextUrl.search}`,
     );
     return copyCookies(response, NextResponse.redirect(loginUrl));
   }
 
-  if (user && (isAuthPage || isAuthCallback)) {
-    return copyCookies(response, NextResponse.redirect(new URL("/", request.url)));
+  if (user && (isRoot || isAuthPage || isAuthCallback)) {
+    return copyCookies(
+      response,
+      NextResponse.redirect(new URL("/dashboard", request.url)),
+    );
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+  matcher: [
+    "/",
+    "/dashboard/:path*",
+    "/login",
+    "/signup",
+    "/auth/confirm",
+  ],
 };
