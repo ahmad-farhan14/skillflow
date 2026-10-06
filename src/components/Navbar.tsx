@@ -1,6 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
+import { signOut } from "@/app/actions/auth";
+import { createClient } from "@/utils/supabase/client";
 import { useSkillFlow } from "../context/SkillFlowContext";
 import {
   FlameIcon,
@@ -29,6 +34,41 @@ export function Navbar({ onOpenRoadmapModal }: NavbarProps) {
   } = useSkillFlow();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [authUser, setAuthUser] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const router = useRouter();
+
+  useEffect(() => {
+    const supabase = createClient();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthUser(session?.user ?? null);
+      setIsAuthLoading(false);
+      setAuthError("");
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    setAuthError("");
+    try {
+      await signOut();
+      setAuthUser(null);
+      router.replace("/login");
+      router.refresh();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to sign out.";
+      setAuthError(message);
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md transition-colors duration-200">
@@ -160,24 +200,44 @@ export function Navbar({ onOpenRoadmapModal }: NavbarProps) {
             <ResetIcon size={16} />
           </button>
 
-          {/* User Profile Avatar */}
-          <div className="flex items-center gap-2 pl-1 border-l border-slate-200 dark:border-slate-800">
-            <img
-              src={userProfile.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80"}
-              alt={userProfile.full_name}
-              className="w-9 h-9 rounded-full ring-2 ring-blue-500/30 object-cover"
-            />
-            <div className="hidden lg:block text-left">
-              <div className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
-                {userProfile.full_name}
-              </div>
-              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
-                Active Learner
-              </div>
-            </div>
+          <div className="flex items-center gap-3 border-l border-slate-200 pl-3 dark:border-slate-800">
+            {isAuthLoading ? (
+              <span
+                aria-label="Checking sign-in status"
+                className="h-8 w-16 animate-pulse rounded-md bg-slate-200 dark:bg-slate-800"
+              />
+            ) : authUser ? (
+              <>
+                <span className="hidden max-w-40 truncate text-xs text-slate-700 dark:text-slate-300 sm:block">
+                  {typeof authUser.user_metadata.full_name === "string"
+                    ? authUser.user_metadata.full_name
+                    : authUser.email}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  disabled={isSigningOut}
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-60 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+                >
+                  {isSigningOut ? "Signing out..." : "Sign out"}
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-blue-500"
+              >
+                Sign in
+              </Link>
+            )}
           </div>
         </div>
       </div>
+      {authError && (
+        <p role="alert" className="bg-red-950 px-4 py-2 text-center text-xs text-red-200">
+          {authError}
+        </p>
+      )}
     </header>
   );
 }

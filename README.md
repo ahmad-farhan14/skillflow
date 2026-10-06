@@ -20,6 +20,19 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Supabase Auth
+
+Authentication uses Supabase email/password auth with cookie-based sessions.
+
+1. Copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_SUPABASE_URL`,
+   `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `NEXT_PUBLIC_SITE_URL` to your
+   Supabase project URL, publishable key, and application origin.
+2. In the Supabase dashboard, enable Email authentication and add
+   `http://localhost:3000/auth/confirm` to the project's allowed redirect URLs.
+   Add your deployed `/auth/confirm` URL before deploying.
+3. Start the app with `npm run dev`. The roadmap is protected; sign in at
+   `/login` or create an account at `/signup`.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
