@@ -5,7 +5,6 @@ import { useSkillFlow } from "../context/SkillFlowContext";
 import { Navbar } from "../components/Navbar";
 import { HeroBanner } from "../components/HeroBanner";
 import { ModuleAccordion } from "../components/ModuleAccordion";
-import { StreakCard } from "../components/sidebar/StreakCard";
 import { QuickNotesCard } from "../components/sidebar/QuickNotesCard";
 import { ResourcesCard } from "../components/sidebar/ResourcesCard";
 import { RoadmapSwitcherModal } from "../components/modals/RoadmapSwitcherModal";
@@ -71,38 +70,38 @@ export default function HomePage() {
         <HeroBanner onContinueNext={handleContinueNext} />
 
         {/* Search, Filter & Controls Bar */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-y border-slate-200 py-3 dark:border-white/10">
           {/* Status Filter Tabs */}
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-xs font-semibold overflow-x-auto">
+          <div className="flex items-center gap-1 text-xs font-medium overflow-x-auto">
             <button
               onClick={() => setFilterStatus("all")}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
+              className={`px-3 py-2 border-b-2 transition-colors ${
                 filterStatus === "all"
-                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  ? "border-blue-500 text-slate-950 dark:text-white"
+                  : "border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
               }`}
             >
-              All Milestones ({stats.totalTopics})
+              All Milestones <span className="ml-1 font-mono">{stats.totalTopics}</span>
             </button>
             <button
               onClick={() => setFilterStatus("remaining")}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
+              className={`px-3 py-2 border-b-2 transition-colors ${
                 filterStatus === "remaining"
-                  ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  ? "border-blue-500 text-slate-950 dark:text-white"
+                  : "border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
               }`}
             >
-              To Do ({remainingCount})
+              To Do <span className="ml-1 font-mono">{remainingCount}</span>
             </button>
             <button
               onClick={() => setFilterStatus("completed")}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
+              className={`px-3 py-2 border-b-2 transition-colors ${
                 filterStatus === "completed"
-                  ? "bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  ? "border-blue-500 text-slate-950 dark:text-white"
+                  : "border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
               }`}
             >
-              Completed ({stats.completedTopics})
+              Completed <span className="ml-1 font-mono">{stats.completedTopics}</span>
             </button>
           </div>
 
@@ -116,7 +115,7 @@ export default function HomePage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search topics, concepts, resources..."
-              className="w-full text-xs sm:text-sm pl-9 pr-8 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full text-xs sm:text-sm pl-9 pr-8 py-2 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/60"
             />
             {searchQuery && (
               <button
@@ -137,7 +136,10 @@ export default function HomePage() {
               <div className="flex items-center gap-2">
                 <LayersIcon size={18} className="text-blue-600 dark:text-blue-400" />
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                  Roadmap Modules ({activeRoadmap.modules.length})
+                  Roadmap Modules{" "}
+                  <span className="font-mono text-sm font-normal text-slate-500 dark:text-slate-400">
+                    {activeRoadmap.modules.length}
+                  </span>
                 </h2>
               </div>
               <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -159,9 +161,6 @@ export default function HomePage() {
 
           {/* Right Column: Sticky Learning Companion Sidebar */}
           <aside className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
-            {/* Daily Streak Card */}
-            <StreakCard />
-
             {/* Contextual Quick Notes Card */}
             <QuickNotesCard />
 

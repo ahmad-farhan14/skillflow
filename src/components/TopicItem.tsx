@@ -46,7 +46,7 @@ export function TopicItem({ topic, isNextUp = false }: TopicItemProps) {
     >
       {/* "Next Up" Ribbon Indicator */}
       {isNextUp && !topic.is_completed && (
-        <div className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-bold tracking-wide uppercase shadow-xs flex items-center gap-1">
+        <div className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-mono uppercase shadow-xs flex items-center gap-1">
           <SparklesIcon size={10} /> Next Up
         </div>
       )}
@@ -82,7 +82,7 @@ export function TopicItem({ topic, isNextUp = false }: TopicItemProps) {
 
             {/* Badges */}
             <span
-              className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border ${getDifficultyBadge(
+              className={`rounded-md border px-2 py-0.5 font-mono text-[10px] uppercase ${getDifficultyBadge(
                 topic.difficulty
               )}`}
             >
@@ -90,7 +90,7 @@ export function TopicItem({ topic, isNextUp = false }: TopicItemProps) {
             </span>
 
             {topic.estimated_minutes && (
-              <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">
+              <span className="inline-flex items-center gap-1 font-mono text-[11px] text-slate-500 dark:text-slate-400">
                 <ClockIcon size={12} /> {topic.estimated_minutes}m
               </span>
             )}

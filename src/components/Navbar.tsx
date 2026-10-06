@@ -29,7 +29,6 @@ export function Navbar({ onOpenRoadmapModal }: NavbarProps) {
   } = useSkillFlow();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [showStreakTooltip, setShowStreakTooltip] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md transition-colors duration-200">
@@ -37,15 +36,15 @@ export function Navbar({ onOpenRoadmapModal }: NavbarProps) {
         {/* Left: Brand Logo & Title */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => switchRoadmap("frontend-web-developer")}>
-            <div className="w-10 h-10 rounded-xl bg-linear-to-tr from-blue-600 via-indigo-600 to-amber-500 flex items-center justify-center shadow-md shadow-blue-500/20 text-white">
+            <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white">
               <SparklesIcon size={22} className="text-white" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-xl tracking-tight bg-linear-to-r from-blue-600 via-indigo-600 to-amber-500 bg-clip-text text-transparent">
+                <span className="font-semibold text-lg tracking-tight text-slate-950 dark:text-white">
                   SkillFlow
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300">
+                <span className="rounded border border-slate-200 px-1.5 py-0.5 font-mono text-[9px] text-slate-500 dark:border-white/10 dark:text-slate-400">
                   v1.0
                 </span>
               </div>
@@ -59,7 +58,7 @@ export function Navbar({ onOpenRoadmapModal }: NavbarProps) {
           <div className="relative hidden md:block">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium text-slate-800 dark:text-slate-200 transition-all shadow-sm"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-transparent hover:bg-slate-100 dark:hover:bg-white/5 text-sm font-medium text-slate-800 dark:text-slate-200 transition-colors"
               aria-expanded={isDropdownOpen}
               aria-haspopup="true"
             >
@@ -134,47 +133,19 @@ export function Navbar({ onOpenRoadmapModal }: NavbarProps) {
 
           {/* Daily Streak Pill */}
           <div
-            className="relative"
-            onMouseEnter={() => setShowStreakTooltip(true)}
-            onMouseLeave={() => setShowStreakTooltip(false)}
+            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-slate-600 dark:text-slate-300"
+            title="Current learning streak"
+            aria-label={`${userProfile.current_streak} day learning streak`}
           >
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 shadow-sm cursor-pointer hover:bg-amber-100/80 dark:hover:bg-amber-900/40 transition-colors">
-              <FlameIcon size={18} className="text-amber-500 animate-flame" />
-              <span className="text-xs font-bold text-amber-900 dark:text-amber-300 tabular-nums">
-                {userProfile.current_streak} Days Streak
-              </span>
-            </div>
-
-            {/* Streak Hover Popover */}
-            {showStreakTooltip && (
-              <div className="absolute right-0 mt-2 w-64 p-3 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/60 rounded-xl shadow-xl z-50 text-xs text-slate-600 dark:text-slate-300 animate-in fade-in">
-                <div className="flex items-center justify-between font-bold text-slate-900 dark:text-white mb-1.5">
-                  <span className="flex items-center gap-1">
-                    <FlameIcon size={16} className="text-amber-500" />
-                    Consistent Learner
-                  </span>
-                  <span className="text-amber-600 dark:text-amber-400 font-extrabold">
-                    {userProfile.current_streak}d
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
-                  Complete at least one milestone every 24 hours to keep your flame burning bright!
-                </p>
-                <div className="flex items-center justify-between text-[10px] text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
-                  <span>Last active:</span>
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">
-                    {userProfile.last_active_date || "Today"}
-                  </span>
-                </div>
-              </div>
-            )}
+            <FlameIcon size={15} className="text-amber-500" />
+            <span className="font-mono tabular-nums">{userProfile.current_streak}d</span>
           </div>
 
           {/* Theme Toggle Button */}
           <button
             onClick={toggleDarkMode}
             aria-label="Toggle theme"
-            className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-sm"
+            className="p-2 rounded-lg border border-slate-200 dark:border-white/10 bg-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
           >
             {isDarkMode ? <SunIcon size={18} className="text-amber-400" /> : <MoonIcon size={18} className="text-slate-700" />}
           </button>

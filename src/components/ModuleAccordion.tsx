@@ -90,7 +90,7 @@ export function ModuleAccordion({ module, defaultExpanded = true }: ModuleAccord
         <div className="flex items-start gap-3.5 flex-1 min-w-0">
           {/* Module Index Pill */}
           <div
-            className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 transition-colors ${
+            className={`w-9 h-9 rounded-xl flex items-center justify-center font-mono text-sm shrink-0 transition-colors ${
               isModuleComplete
                 ? "bg-emerald-500 text-white shadow-xs"
                 : "bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/40"
@@ -106,11 +106,11 @@ export function ModuleAccordion({ module, defaultExpanded = true }: ModuleAccord
                 {module.title}
               </h3>
               {isModuleComplete ? (
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300">
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 font-mono text-[10px] text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
                   Completed
                 </span>
               ) : (
-                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                <span className="font-mono text-[11px] text-slate-500 dark:text-slate-400">
                   {completedTopics} / {totalTopics} completed
                 </span>
               )}
@@ -125,7 +125,7 @@ export function ModuleAccordion({ module, defaultExpanded = true }: ModuleAccord
         <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0">
           {/* Mini progress bar */}
           <div className="w-28 sm:w-32 flex flex-col items-end gap-1">
-            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 tabular-nums">
+            <span className="font-mono text-xs text-slate-700 dark:text-slate-300 tabular-nums">
               {modulePercentage}%
             </span>
             <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
