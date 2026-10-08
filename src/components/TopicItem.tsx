@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { Topic } from "../types";
+import type { Topic } from "../types";
 import { useSkillFlow } from "../context/SkillFlowContext";
+import { ProofOfLearning } from "./ProofOfLearning";
 import {
   CheckIcon,
-  ExternalLinkIcon,
+  BookOpenIcon,
   ClockIcon,
   ChevronDownIcon,
   ChevronUpIcon,
@@ -15,11 +16,39 @@ import {
 interface TopicItemProps {
   topic: Topic;
   isNextUp?: boolean;
+  onOpenTopic: (topic: Topic) => void;
 }
 
-export function TopicItem({ topic, isNextUp = false }: TopicItemProps) {
+export function TopicItem({
+  topic,
+  isNextUp = false,
+  onOpenTopic,
+}: TopicItemProps) {
   const { toggleTopicCompletion } = useSkillFlow();
   const [showTakeaways, setShowTakeaways] = useState(false);
+  const [showProof, setShowProof] = useState(false);
+  const [progressError, setProgressError] = useState("");
+  const [isUpdatingCompletion, setIsUpdatingCompletion] = useState(false);
+
+  const handleCompletionClick = async () => {
+    if (!topic.is_completed) {
+      setShowProof(true);
+      return;
+    }
+    setProgressError("");
+    setIsUpdatingCompletion(true);
+    try {
+      await toggleTopicCompletion(topic.id);
+    } catch (error) {
+      setProgressError(
+        error instanceof Error
+          ? error.message
+          : "Unable to update your topic progress.",
+      );
+    } finally {
+      setIsUpdatingCompletion(false);
+    }
+  };
 
   const getDifficultyBadge = (difficulty?: string) => {
     switch (difficulty) {
@@ -55,8 +84,13 @@ export function TopicItem({ topic, isNextUp = false }: TopicItemProps) {
         {/* Interactive Custom Checkbox */}
         <button
           type="button"
-          onClick={() => toggleTopicCompletion(topic.id)}
-          aria-label={`Mark ${topic.title} as ${topic.is_completed ? "incomplete" : "completed"}`}
+          onClick={() => void handleCompletionClick()}
+          disabled={isUpdatingCompletion}
+          aria-label={
+            topic.is_completed
+              ? `Mark ${topic.title} incomplete`
+              : `Submit proof of learning for ${topic.title}`
+          }
           className={`mt-0.5 w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-200 shrink-0 cursor-pointer ${
             topic.is_completed
               ? "bg-emerald-500 text-white shadow-sm hover:bg-emerald-600"
@@ -69,16 +103,17 @@ export function TopicItem({ topic, isNextUp = false }: TopicItemProps) {
         {/* Topic Content & Metadata */}
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-1">
-            <span
-              onClick={() => toggleTopicCompletion(topic.id)}
-              className={`text-sm sm:text-base font-semibold cursor-pointer transition-colors ${
+            <button
+              type="button"
+              onClick={() => onOpenTopic(topic)}
+              className={`text-left text-sm sm:text-base font-semibold cursor-pointer transition-colors ${
                 topic.is_completed
                   ? "line-through text-slate-400 dark:text-slate-500"
                   : "text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400"
               }`}
             >
               {topic.title}
-            </span>
+            </button>
 
             {/* Badges */}
             <span
@@ -105,15 +140,24 @@ export function TopicItem({ topic, isNextUp = false }: TopicItemProps) {
           {/* Links & Takeaways Accordion */}
           <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
             {topic.resource_url && (
-              <a
-                href={topic.resource_url}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => onOpenTopic(topic)}
                 className="inline-flex items-center gap-1 font-medium text-blue-600 dark:text-blue-400 hover:underline"
               >
                 <span>{topic.resource_label || "Study Resource"}</span>
-                <ExternalLinkIcon size={12} />
-              </a>
+                <BookOpenIcon size={13} />
+              </button>
+            )}
+
+            {!topic.is_completed && (
+              <button
+                type="button"
+                onClick={() => setShowProof((visible) => !visible)}
+                className="font-medium text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
+              >
+                {showProof ? "Hide proof" : "Proof of Learning"}
+              </button>
             )}
 
             {topic.key_takeaways && topic.key_takeaways.length > 0 && (
@@ -151,6 +195,17 @@ export function TopicItem({ topic, isNextUp = false }: TopicItemProps) {
           )}
         </div>
       </div>
+
+      {showProof && !topic.is_completed && (
+        <div className="ml-9">
+          <ProofOfLearning topic={topic} />
+        </div>
+      )}
+      {progressError && (
+        <p role="alert" className="ml-9 mt-2 text-xs text-red-600 dark:text-red-400">
+          {progressError}
+        </p>
+      )}
     </div>
   );
 }

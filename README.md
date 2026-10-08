@@ -34,6 +34,19 @@ Authentication uses Supabase email/password auth with cookie-based sessions.
    in at `/login` or create an account at `/signup`. The protected workspace
    is at `/dashboard`.
 
+## Reader and validated progress
+
+The dashboard opens roadmap topics in a split-view reader with Quick Notes and
+the current module checklist. A topic can only be completed after submitting a
+20–2,000 character reflection; the authenticated progress record is stored in
+Supabase and protected by row-level security.
+
+Before using topic completion, apply
+[`db/migrations/20261008000000_topic_learning_progress.sql`](./db/migrations/20261008000000_topic_learning_progress.sql)
+to the Supabase project (for example, in the SQL Editor). This table uses the
+client roadmap topic IDs, which are separate from the UUID topic records in the
+initial database seed.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Module } from "../types";
+import { Module, Topic } from "../types";
 import { TopicItem } from "./TopicItem";
 import { useSkillFlow } from "../context/SkillFlowContext";
 import {
@@ -10,14 +10,20 @@ import {
   PlusIcon,
   FileTextIcon,
   XIcon,
+  BookOpenIcon,
 } from "./icons";
 
 interface ModuleAccordionProps {
   module: Module;
   defaultExpanded?: boolean;
+  onOpenTopic: (topic: Topic) => void;
 }
 
-export function ModuleAccordion({ module, defaultExpanded = true }: ModuleAccordionProps) {
+export function ModuleAccordion({
+  module,
+  defaultExpanded = true,
+  onOpenTopic,
+}: ModuleAccordionProps) {
   const {
     filterStatus,
     searchQuery,
@@ -139,6 +145,25 @@ export function ModuleAccordion({ module, defaultExpanded = true }: ModuleAccord
           </div>
 
           {/* Context note button */}
+          {module.topics.length > 0 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenTopic(
+                  module.topics.find((topic) => !topic.is_completed) ??
+                    module.topics[0],
+                );
+              }}
+              title="Open module learning workspace"
+              aria-label={`Open ${module.title} learning workspace`}
+              className="p-2 rounded-lg border border-blue-200 dark:border-blue-800/70 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors"
+            >
+              <BookOpenIcon size={16} />
+            </button>
+          )}
+
+          {/* Context note button */}
           <button
             type="button"
             onClick={(e) => {
@@ -175,6 +200,7 @@ export function ModuleAccordion({ module, defaultExpanded = true }: ModuleAccord
                 key={topic.id}
                 topic={topic}
                 isNextUp={nextUpTopic?.id === topic.id}
+                onOpenTopic={onOpenTopic}
               />
             ))
           ) : (

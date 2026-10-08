@@ -7,6 +7,7 @@ import React, {
   useState,
   useMemo,
   useCallback,
+  useRef,
 } from "react";
 import confetti from "canvas-confetti";
 import {
@@ -22,6 +23,8 @@ import {
   initialUserProfile,
   initialNotes,
 } from "../data/seedData";
+import { createClient } from "../utils/supabase/client";
+import { isSupabaseConfigured } from "../utils/supabase/config";
 
 interface SkillFlowContextType {
   roadmaps: Roadmap[];
@@ -39,7 +42,7 @@ interface SkillFlowContextType {
   setSearchQuery: (query: string) => void;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
-  toggleTopicCompletion: (topicId: string) => void;
+  toggleTopicCompletion: (topicId: string, proofResponse?: string) => Promise<void>;
   addCustomTopic: (
     moduleId: string,
     title: string,
@@ -131,6 +134,7 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
+  const progressMutationVersion = useRef(0);
 
   // Load state from localStorage on initial mount
   useEffect(() => {
@@ -183,6 +187,74 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
     }
   }, [notes, isHydrated]);
+
+  useEffect(() => {
+    if (!isHydrated || !isSupabaseConfigured()) return;
+
+    let cancelled = false;
+    const restoreStartedAtVersion = progressMutationVersion.current;
+    const restoreSupabaseProgress = async () => {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+        if (userError) {
+          console.error("Failed to verify account for progress sync", userError);
+          return;
+        }
+        if (!user) return;
+
+        const { data, error } = await supabase
+          .from("topic_learning_progress")
+          .select("topic_id, is_completed, completed_at")
+          .eq("user_id", user.id);
+        if (error) {
+          console.error("Failed to restore Supabase topic progress", error);
+          return;
+        }
+        if (cancelled || restoreStartedAtVersion !== progressMutationVersion.current) {
+          return;
+        }
+
+        const progressByTopic = new Map(
+          data.map((record) => [
+            record.topic_id,
+            {
+              is_completed: record.is_completed,
+              completed_at: record.completed_at,
+            },
+          ]),
+        );
+        setRoadmaps((currentRoadmaps) =>
+          currentRoadmaps.map((roadmap) => ({
+            ...roadmap,
+            modules: roadmap.modules.map((module) => ({
+              ...module,
+              topics: module.topics.map((topic) => {
+                const progress = progressByTopic.get(topic.id);
+                return progress
+                  ? {
+                      ...topic,
+                      is_completed: progress.is_completed,
+                      completed_at: progress.completed_at,
+                    }
+                  : topic;
+              }),
+            })),
+          })),
+        );
+      } catch (error) {
+        console.error("Failed to restore Supabase topic progress", error);
+      }
+    };
+
+    void restoreSupabaseProgress();
+    return () => {
+      cancelled = true;
+    };
+  }, [isHydrated]);
 
   // Sync active slug to localStorage
   useEffect(() => {
@@ -275,8 +347,69 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
 
   // Toggle Topic completion
   const toggleTopicCompletion = useCallback(
-    (topicId: string) => {
-      let isNowCompleted = false;
+    async (topicId: string, proofResponse?: string) => {
+      progressMutationVersion.current += 1;
+      const topic = activeRoadmap.modules
+        .flatMap((module) => module.topics)
+        .find((item) => item.id === topicId);
+      if (!topic) {
+        throw new Error("This learning topic could not be found.");
+      }
+
+      const isNowCompleted = !topic.is_completed;
+      const normalizedProof = proofResponse?.trim() ?? "";
+      if (isNowCompleted && normalizedProof.length < 20) {
+        throw new Error("Write at least 20 characters in your reflection before completing this topic.");
+      }
+      if (isNowCompleted && normalizedProof.length > 2000) {
+        throw new Error("Your reflection must be 2,000 characters or fewer.");
+      }
+
+      if (!isSupabaseConfigured()) {
+        throw new Error("Supabase is not configured. Set the Supabase URL and publishable key before saving progress.");
+      }
+
+      const supabase = createClient();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError) {
+        throw new Error(`Unable to verify your account: ${userError.message}`);
+      }
+      if (!user) {
+        throw new Error("Sign in to save validated topic progress.");
+      }
+
+      if (isNowCompleted) {
+        const { error } = await supabase.from("topic_learning_progress").upsert(
+          {
+            user_id: user.id,
+            topic_id: topicId,
+            proof_response: normalizedProof,
+            is_completed: true,
+            completed_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id,topic_id" },
+        );
+        if (error) {
+          throw new Error(`Unable to save your proof of learning: ${error.message}`);
+        }
+      } else {
+        const { error } = await supabase.from("topic_learning_progress").upsert(
+          {
+            user_id: user.id,
+            topic_id: topicId,
+            proof_response: null,
+            is_completed: false,
+            completed_at: null,
+          },
+          { onConflict: "user_id,topic_id" },
+        );
+        if (error) {
+          throw new Error(`Unable to update your topic progress: ${error.message}`);
+        }
+      }
 
       setRoadmaps((prevRoadmaps: Roadmap[]) =>
         prevRoadmaps.map((r: Roadmap) => {
@@ -287,7 +420,6 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
               ...m,
               topics: m.topics.map((t: Topic) => {
                 if (t.id === topicId) {
-                  isNowCompleted = !t.is_completed;
                   return {
                     ...t,
                     is_completed: isNowCompleted,
@@ -306,35 +438,33 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
       // Play chime audio
       if (isNowCompleted) {
         playChime(false);
-      }
 
-      // Update streak and activity
-      const today = new Date().toISOString().split("T")[0];
-      setUserProfile((prevProfile: UserProfile) => {
-        const lastActive = prevProfile.last_active_date;
-        const isToday = lastActive === today;
-        const newStreak = isToday
-          ? prevProfile.current_streak
-          : prevProfile.current_streak + 1;
-        const weekly = { ...prevProfile.weekly_activity, [today]: true };
+        // Update streak and activity only after Supabase confirms completion.
+        const today = new Date().toISOString().split("T")[0];
+        setUserProfile((prevProfile: UserProfile) => {
+          const isToday = prevProfile.last_active_date === today;
+          const weekly = { ...prevProfile.weekly_activity, [today]: true };
 
-        return {
-          ...prevProfile,
-          current_streak: newStreak,
-          last_active_date: today,
-          weekly_activity: weekly,
-        };
-      });
+          return {
+            ...prevProfile,
+            current_streak: isToday
+              ? prevProfile.current_streak
+              : prevProfile.current_streak + 1,
+            last_active_date: today,
+            weekly_activity: weekly,
+          };
+        });
 
-      // If user reached a new full milestone or 100% completion, trigger extra celebration
-      if (isNowCompleted && stats.completedTopics + 1 === stats.totalTopics) {
-        setTimeout(() => {
-          playChime(true);
-          triggerCelebration();
-        }, 200);
+        // If user reached a new full milestone or 100% completion, celebrate.
+        if (stats.completedTopics + 1 === stats.totalTopics) {
+          setTimeout(() => {
+            playChime(true);
+            triggerCelebration();
+          }, 200);
+        }
       }
     },
-    [activeRoadmap.id, stats, triggerCelebration],
+    [activeRoadmap, stats, triggerCelebration],
   );
 
   // Add custom topic inline

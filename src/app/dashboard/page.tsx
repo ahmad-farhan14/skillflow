@@ -7,7 +7,9 @@ import { HeroBanner } from "../../components/HeroBanner";
 import { ModuleAccordion } from "../../components/ModuleAccordion";
 import { QuickNotesCard } from "../../components/sidebar/QuickNotesCard";
 import { ResourcesCard } from "../../components/sidebar/ResourcesCard";
+import { ResourceReader } from "../../components/ResourceReader";
 import { RoadmapSwitcherModal } from "../../components/modals/RoadmapSwitcherModal";
+import { Topic } from "../../types";
 import {
   SearchIcon,
   LayersIcon,
@@ -28,6 +30,9 @@ export default function HomePage() {
   } = useSkillFlow();
 
   const [isRoadmapModalOpen, setIsRoadmapModalOpen] = useState(false);
+  const [activeReaderTopicId, setActiveReaderTopicId] = useState<string | null>(
+    null,
+  );
 
   // Jump to next up topic
   const handleContinueNext = () => {
@@ -58,6 +63,12 @@ export default function HomePage() {
   }
 
   const remainingCount = stats.totalTopics - stats.completedTopics;
+  const activeReaderModule = activeRoadmap.modules.find((module) =>
+    module.topics.some((topic) => topic.id === activeReaderTopicId),
+  );
+  const activeReaderTopic = activeReaderModule?.topics.find(
+    (topic) => topic.id === activeReaderTopicId,
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
@@ -154,6 +165,7 @@ export default function HomePage() {
                   key={module.id}
                   module={module}
                   defaultExpanded={idx === 0 || idx === 1}
+                  onOpenTopic={(topic: Topic) => setActiveReaderTopicId(topic.id)}
                 />
               ))}
             </div>
@@ -188,6 +200,14 @@ export default function HomePage() {
         isOpen={isRoadmapModalOpen}
         onClose={() => setIsRoadmapModalOpen(false)}
       />
+      {activeReaderTopic && activeReaderModule && (
+        <ResourceReader
+          topic={activeReaderTopic}
+          module={activeReaderModule}
+          onSelectTopic={(topic) => setActiveReaderTopicId(topic.id)}
+          onClose={() => setActiveReaderTopicId(null)}
+        />
+      )}
     </div>
   );
 }
