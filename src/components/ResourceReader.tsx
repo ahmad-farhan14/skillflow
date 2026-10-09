@@ -10,6 +10,7 @@ import {
   CheckCircleIcon,
   CircleIcon,
   ExternalLinkIcon,
+  SparklesIcon,
   XIcon,
 } from "./icons";
 
@@ -71,6 +72,8 @@ export function ResourceReader({
   const [failedEmbedUrl, setFailedEmbedUrl] = useState<string | null>(null);
   const externalUrl = getSafeResourceUrl(topic.resource_url);
   const embedUrl = getEmbedUrl(externalUrl);
+  const isYouTubeVideo =
+    embedUrl?.startsWith("https://www.youtube.com/embed/") ?? false;
   const embedFailed =
     embedUrl !== null &&
     (failedEmbedUrl === embedUrl || isKnownFrameRestricted(externalUrl));
@@ -123,7 +126,7 @@ export function ResourceReader({
       </header>
 
       <main className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-12 lg:overflow-hidden">
-        <section className="flex min-h-[60vh] flex-col border-b border-white/10 lg:col-span-8 lg:min-h-0 lg:border-b-0 lg:border-r">
+        <section className="flex min-h-[60vh] flex-col border-b border-white/10 lg:col-span-8 lg:min-h-0 lg:overflow-y-auto lg:border-b-0 lg:border-r">
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6">
             <p className="truncate text-xs text-slate-400">
               {topic.resource_label || "Learning resource"}
@@ -160,7 +163,7 @@ export function ResourceReader({
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-blue-400/20 bg-blue-400/10 text-blue-300">
                       <BookOpenIcon size={22} />
                     </div>
-                    <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 font-mono text-[11px] text-slate-300">
+                    <span className="rounded-full border border-white/10 bg-white/4 px-3 py-1 font-mono text-[11px] text-slate-300">
                       {externalUrl.hostname.replace(/^www\./i, "")}
                     </span>
                   </div>
@@ -198,6 +201,35 @@ export function ResourceReader({
               </div>
             )}
           </div>
+          {isYouTubeVideo && (
+            <section className="shrink-0 border-b border-white/10 px-4 py-5 sm:px-6">
+              <div className="mb-4 flex items-center gap-2">
+                <SparklesIcon size={16} className="text-amber-300" />
+                <h3 className="text-sm font-semibold text-white">
+                  Video Summary / Key Takeaways
+                </h3>
+              </div>
+              {topic.key_takeaways?.length ? (
+                <ol className="space-y-3">
+                  {topic.key_takeaways.map((point, index) => (
+                    <li
+                      key={`${topic.id}-takeaway-${index}`}
+                      className="flex gap-3 text-sm leading-relaxed text-slate-300"
+                    >
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-white/6 font-mono text-[11px] text-blue-300">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="text-sm leading-relaxed text-slate-400">
+                  A video summary is not available for this topic yet.
+                </p>
+              )}
+            </section>
+          )}
           <div className="flex shrink-0 items-center justify-between gap-3 border-t border-white/10 px-4 py-2.5 sm:px-6">
             <p className="text-[11px] leading-relaxed text-slate-500">
               Some publishers block embedded viewing.
@@ -293,7 +325,11 @@ export function ResourceReader({
               ))}
             </div>
             <div className="mt-3 border-t border-white/10 pt-3">
-              <ProofOfLearning key={topic.id} topic={topic} />
+              <ProofOfLearning
+                key={topic.id}
+                topic={topic}
+                requireVideoQuiz={isYouTubeVideo}
+              />
             </div>
           </section>
         </aside>
