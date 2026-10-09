@@ -49,7 +49,7 @@ function getEmbedUrl(url: URL | null) {
   }
 
   if (videoId) {
-    return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}`;
+    return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
   }
   return url.toString();
 }
@@ -63,8 +63,10 @@ export function ResourceReader({
   const { setSelectedModuleIdForNotes, toggleTopicCompletion } = useSkillFlow();
   const [progressError, setProgressError] = useState("");
   const [pendingTopicId, setPendingTopicId] = useState<string | null>(null);
+  const [failedEmbedUrl, setFailedEmbedUrl] = useState<string | null>(null);
   const externalUrl = getSafeResourceUrl(topic.resource_url);
   const embedUrl = getEmbedUrl(externalUrl);
+  const embedFailed = embedUrl !== null && failedEmbedUrl === embedUrl;
 
   useEffect(() => {
     setSelectedModuleIdForNotes(module.id);
@@ -94,7 +96,9 @@ export function ResourceReader({
             <BookOpenIcon size={18} />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-[11px] text-slate-400">{module.title}</p>
+            <p className="truncate text-[11px] text-slate-400">
+              {module.title}
+            </p>
             <h2 className="truncate text-sm font-semibold text-white sm:text-base">
               {topic.title}
             </h2>
@@ -131,16 +135,40 @@ export function ResourceReader({
           </div>
 
           <div className="relative min-h-[55vh] flex-1 bg-[#0c0c0d] lg:min-h-0">
-            {embedUrl ? (
+            {embedUrl && !embedFailed ? (
               <iframe
                 key={embedUrl}
                 src={embedUrl}
                 title={`${topic.resource_label || topic.title} learning resource`}
                 className="absolute inset-0 h-full w-full border-0"
+                onError={() => setFailedEmbedUrl(embedUrl)}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
                 referrerPolicy="strict-origin-when-cross-origin"
               />
+            ) : embedFailed && externalUrl ? (
+              <div className="flex h-full min-h-[55vh] flex-col items-center justify-center gap-4 px-6 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-blue-400/20 bg-blue-400/10 text-blue-300">
+                  <BookOpenIcon size={26} />
+                </div>
+                <div className="max-w-md space-y-2">
+                  <h3 className="text-base font-semibold text-white">
+                    This website restricts direct embedding
+                  </h3>
+                  <p className="text-sm leading-relaxed text-slate-400">
+                    Open the resource in a new tab to continue learning.
+                  </p>
+                </div>
+                <a
+                  href={externalUrl.toString()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300"
+                >
+                  Open Resource in New Tab
+                  <ExternalLinkIcon size={15} />
+                </a>
+              </div>
             ) : (
               <div className="flex h-full min-h-[55vh] flex-col items-center justify-center gap-3 px-6 text-center">
                 <BookOpenIcon size={28} className="text-slate-500" />
@@ -148,16 +176,26 @@ export function ResourceReader({
                   No embeddable resource is available for this topic.
                 </p>
                 <p className="max-w-md text-xs leading-relaxed text-slate-400">
-                  Select a resource link from the roadmap, or add a valid HTTP(S)
-                  resource URL to this topic.
+                  Select a resource link from the roadmap, or add a valid
+                  HTTP(S) resource URL to this topic.
                 </p>
               </div>
             )}
           </div>
-          <p className="shrink-0 border-t border-white/10 px-4 py-2.5 text-[11px] leading-relaxed text-slate-500 sm:px-6">
-            Some publishers block embedded viewing. If the resource does not
-            load, use &quot;Open in External Tab&quot; above.
-          </p>
+          <div className="flex shrink-0 items-center justify-between gap-3 border-t border-white/10 px-4 py-2.5 sm:px-6">
+            <p className="text-[11px] leading-relaxed text-slate-500">
+              Some publishers block embedded viewing.
+            </p>
+            {embedUrl && externalUrl && !embedFailed && (
+              <button
+                type="button"
+                onClick={() => setFailedEmbedUrl(embedUrl)}
+                className="shrink-0 text-[11px] font-medium text-blue-300 underline decoration-blue-300/40 underline-offset-4 transition hover:text-blue-200"
+              >
+                Show resource fallback
+              </button>
+            )}
+          </div>
         </section>
 
         <aside className="flex min-h-0 flex-col gap-4 bg-[#181819] p-4 sm:p-5 lg:col-span-4 lg:overflow-y-auto">
