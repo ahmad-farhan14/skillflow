@@ -33,18 +33,28 @@ function getSafeResourceUrl(resourceUrl?: string) {
   }
 }
 
-function getEmbedUrl(url: URL | null) {
+function getYouTubeEmbedUrl(url: URL | null) {
   if (!url) return null;
 
   const host = url.hostname.toLowerCase().replace(/^www\./, "");
+  if (
+    host !== "youtu.be" &&
+    host !== "youtube.com" &&
+    host !== "m.youtube.com" &&
+    host !== "music.youtube.com" &&
+    host !== "youtube-nocookie.com"
+  ) {
+    return null;
+  }
+
   let videoId: string | null = null;
   if (host === "youtu.be") {
     videoId = url.pathname.split("/").filter(Boolean)[0] ?? null;
-  } else if (host === "youtube.com" || host === "m.youtube.com") {
+  } else {
     if (url.pathname === "/watch") {
       videoId = url.searchParams.get("v");
     } else {
-      const match = url.pathname.match(/^\/(?:embed|shorts)\/([^/]+)/);
+      const match = url.pathname.match(/^\/(?:embed|shorts|live)\/([^/]+)/);
       videoId = match?.[1] ?? null;
     }
   }
@@ -70,10 +80,14 @@ export function ResourceReader({
   const [progressError, setProgressError] = useState("");
   const [pendingTopicId, setPendingTopicId] = useState<string | null>(null);
   const [failedEmbedUrl, setFailedEmbedUrl] = useState<string | null>(null);
-  const externalUrl = getSafeResourceUrl(topic.resource_url);
-  const embedUrl = getEmbedUrl(externalUrl);
-  const isYouTubeVideo =
-    embedUrl?.startsWith("https://www.youtube.com/embed/") ?? false;
+  const resourceUrl = getSafeResourceUrl(topic.resource_url);
+  const mappedVideoUrl = getSafeResourceUrl(topic.video_url);
+  const mappedVideoEmbedUrl = getYouTubeEmbedUrl(mappedVideoUrl);
+  const resourceVideoEmbedUrl = getYouTubeEmbedUrl(resourceUrl);
+  const youtubeEmbedUrl = mappedVideoEmbedUrl ?? resourceVideoEmbedUrl;
+  const externalUrl = mappedVideoEmbedUrl ? mappedVideoUrl : resourceUrl;
+  const embedUrl = youtubeEmbedUrl ?? externalUrl?.toString() ?? null;
+  const isYouTubeVideo = youtubeEmbedUrl !== null;
   const embedFailed =
     embedUrl !== null &&
     (failedEmbedUrl === embedUrl || isKnownFrameRestricted(externalUrl));

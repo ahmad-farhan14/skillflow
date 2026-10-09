@@ -19,6 +19,7 @@ export interface Topic {
   title: string;
   description?: string;
   resource_url?: string;
+  video_url?: string;
   resource_label?: string;
   order_index: number;
   estimated_minutes?: number;
