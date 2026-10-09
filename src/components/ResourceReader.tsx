@@ -54,6 +54,11 @@ function getEmbedUrl(url: URL | null) {
   return url.toString();
 }
 
+function isKnownFrameRestricted(url: URL | null) {
+  const host = url?.hostname.toLowerCase().replace(/^www\./, "");
+  return host === "nngroup.com" || host?.endsWith(".nngroup.com") === true;
+}
+
 export function ResourceReader({
   topic,
   module,
@@ -66,7 +71,9 @@ export function ResourceReader({
   const [failedEmbedUrl, setFailedEmbedUrl] = useState<string | null>(null);
   const externalUrl = getSafeResourceUrl(topic.resource_url);
   const embedUrl = getEmbedUrl(externalUrl);
-  const embedFailed = embedUrl !== null && failedEmbedUrl === embedUrl;
+  const embedFailed =
+    embedUrl !== null &&
+    (failedEmbedUrl === embedUrl || isKnownFrameRestricted(externalUrl));
 
   useEffect(() => {
     setSelectedModuleIdForNotes(module.id);
@@ -147,27 +154,36 @@ export function ResourceReader({
                 referrerPolicy="strict-origin-when-cross-origin"
               />
             ) : embedFailed && externalUrl ? (
-              <div className="flex h-full min-h-[55vh] flex-col items-center justify-center gap-4 px-6 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-blue-400/20 bg-blue-400/10 text-blue-300">
-                  <BookOpenIcon size={26} />
-                </div>
-                <div className="max-w-md space-y-2">
-                  <h3 className="text-base font-semibold text-white">
-                    This website restricts direct embedding
-                  </h3>
-                  <p className="text-sm leading-relaxed text-slate-400">
-                    Open the resource in a new tab to continue learning.
+              <div className="flex h-full min-h-[55vh] items-center justify-center px-6 py-8">
+                <div className="w-full max-w-xl rounded-xl border border-white/10 bg-[#181819] p-6 shadow-2xl sm:p-8">
+                  <div className="mb-6 flex items-start justify-between gap-4">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-blue-400/20 bg-blue-400/10 text-blue-300">
+                      <BookOpenIcon size={22} />
+                    </div>
+                    <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 font-mono text-[11px] text-slate-300">
+                      {externalUrl.hostname.replace(/^www\./i, "")}
+                    </span>
+                  </div>
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-blue-300">
+                    Reader Mode / External Resource
                   </p>
+                  <h3 className="text-xl font-semibold text-white">
+                    {topic.resource_label || topic.title}
+                  </h3>
+                  <p className="mt-3 text-sm leading-relaxed text-slate-400">
+                    {topic.description ||
+                      "This publisher restricts embedded viewing. Open the resource in a focused reader window to continue."}
+                  </p>
+                  <a
+                    href={externalUrl.toString()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-blue-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 sm:w-auto"
+                  >
+                    Open Resource in Focused Reader Window
+                    <ExternalLinkIcon size={15} />
+                  </a>
                 </div>
-                <a
-                  href={externalUrl.toString()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300"
-                >
-                  Open Resource in New Tab
-                  <ExternalLinkIcon size={15} />
-                </a>
               </div>
             ) : (
               <div className="flex h-full min-h-[55vh] flex-col items-center justify-center gap-3 px-6 text-center">
