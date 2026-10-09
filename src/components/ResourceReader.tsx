@@ -9,7 +9,6 @@ import {
   BookOpenIcon,
   CheckCircleIcon,
   CircleIcon,
-  ExternalLinkIcon,
   SparklesIcon,
   XIcon,
 } from "./icons";
@@ -33,7 +32,7 @@ function getSafeResourceUrl(resourceUrl?: string) {
   }
 }
 
-function getYouTubeEmbedUrl(url: URL | null) {
+function getYouTubeVideoId(url: URL | null) {
   if (!url) return null;
 
   const host = url.hostname.toLowerCase().replace(/^www\./, "");
@@ -50,24 +49,56 @@ function getYouTubeEmbedUrl(url: URL | null) {
   let videoId: string | null = null;
   if (host === "youtu.be") {
     videoId = url.pathname.split("/").filter(Boolean)[0] ?? null;
+  } else if (url.pathname === "/watch") {
+    videoId = url.searchParams.get("v");
   } else {
-    if (url.pathname === "/watch") {
-      videoId = url.searchParams.get("v");
-    } else {
-      const match = url.pathname.match(/^\/(?:embed|shorts|live)\/([^/]+)/);
-      videoId = match?.[1] ?? null;
-    }
+    videoId =
+      url.pathname.match(/^\/(?:embed|shorts|live)\/([^/]+)/)?.[1] ?? null;
   }
 
-  if (videoId) {
-    return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
-  }
-  return url.toString();
+  return videoId && /^[\w-]{11}$/.test(videoId) ? videoId : null;
 }
 
-function isKnownFrameRestricted(url: URL | null) {
-  const host = url?.hostname.toLowerCase().replace(/^www\./, "");
-  return host === "nngroup.com" || host?.endsWith(".nngroup.com") === true;
+const DEFAULT_VIDEO_IDS = {
+  html: "pQN-pnXPaVg",
+  css: "jV8B24rSN5o",
+  javascript: "W6NZfCO5SIk",
+  react: "bMknfKXIFA8",
+  next: "ZVnjOPwW4ZA",
+  ux: "c9Wg6Cb_YlU",
+  figma: "FTFaQWZBqQ8",
+} as const;
+
+function getDefaultVideoId(topic: Topic, module: Module) {
+  const subject = `${topic.title} ${module.title}`.toLowerCase();
+
+  if (subject.includes("figma")) return DEFAULT_VIDEO_IDS.figma;
+  if (
+    /ux|design|wirefram|persona|usability|user interview|prototype/.test(
+      subject,
+    )
+  ) {
+    return DEFAULT_VIDEO_IDS.ux;
+  }
+  if (/react|jsx|hooks|state management|zustand|component/.test(subject)) {
+    return DEFAULT_VIDEO_IDS.react;
+  }
+  if (
+    /next\.js|app router|server action|deployment|environment variable|api integration/.test(
+      subject,
+    )
+  ) {
+    return DEFAULT_VIDEO_IDS.next;
+  }
+  if (
+    /css|grid|flexbox|tailwind|responsive|typography|color theory/.test(subject)
+  ) {
+    return DEFAULT_VIDEO_IDS.css;
+  }
+  if (/html|semantic|accessibility|form|seo/.test(subject)) {
+    return DEFAULT_VIDEO_IDS.html;
+  }
+  return DEFAULT_VIDEO_IDS.javascript;
 }
 
 export function ResourceReader({
@@ -79,18 +110,13 @@ export function ResourceReader({
   const { setSelectedModuleIdForNotes, toggleTopicCompletion } = useSkillFlow();
   const [progressError, setProgressError] = useState("");
   const [pendingTopicId, setPendingTopicId] = useState<string | null>(null);
-  const [failedEmbedUrl, setFailedEmbedUrl] = useState<string | null>(null);
-  const resourceUrl = getSafeResourceUrl(topic.resource_url);
-  const mappedVideoUrl = getSafeResourceUrl(topic.video_url);
-  const mappedVideoEmbedUrl = getYouTubeEmbedUrl(mappedVideoUrl);
-  const resourceVideoEmbedUrl = getYouTubeEmbedUrl(resourceUrl);
-  const youtubeEmbedUrl = mappedVideoEmbedUrl ?? resourceVideoEmbedUrl;
-  const externalUrl = mappedVideoEmbedUrl ? mappedVideoUrl : resourceUrl;
-  const embedUrl = youtubeEmbedUrl ?? externalUrl?.toString() ?? null;
-  const isYouTubeVideo = youtubeEmbedUrl !== null;
-  const embedFailed =
-    embedUrl !== null &&
-    (failedEmbedUrl === embedUrl || isKnownFrameRestricted(externalUrl));
+  const mappedVideoId = getYouTubeVideoId(getSafeResourceUrl(topic.video_url));
+  const resourceVideoId = getYouTubeVideoId(
+    getSafeResourceUrl(topic.resource_url),
+  );
+  const videoId =
+    mappedVideoId ?? resourceVideoId ?? getDefaultVideoId(topic, module);
+  const embedUrl = `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
 
   useEffect(() => {
     setSelectedModuleIdForNotes(module.id);
@@ -143,121 +169,48 @@ export function ResourceReader({
         <section className="flex min-h-[60vh] flex-col border-b border-white/10 lg:col-span-8 lg:min-h-0 lg:overflow-y-auto lg:border-b-0 lg:border-r">
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6">
             <p className="truncate text-xs text-slate-400">
-              {topic.resource_label || "Learning resource"}
+              {topic.resource_label || "Video lesson"}
             </p>
-            {externalUrl && (
-              <a
-                href={externalUrl.toString()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-xs font-medium text-slate-200 transition hover:border-blue-400/50 hover:bg-blue-400/10 hover:text-white"
-              >
-                Open in External Tab
-                <ExternalLinkIcon size={13} />
-              </a>
-            )}
           </div>
 
           <div className="relative min-h-[55vh] flex-1 bg-[#0c0c0d] lg:min-h-0">
-            {embedUrl && !embedFailed ? (
-              <iframe
-                key={embedUrl}
-                src={embedUrl}
-                title={`${topic.resource_label || topic.title} learning resource`}
-                className="absolute inset-0 h-full w-full border-0"
-                onError={() => setFailedEmbedUrl(embedUrl)}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                referrerPolicy="strict-origin-when-cross-origin"
-              />
-            ) : embedFailed && externalUrl ? (
-              <div className="flex h-full min-h-[55vh] items-center justify-center px-6 py-8">
-                <div className="w-full max-w-xl rounded-xl border border-white/10 bg-[#181819] p-6 shadow-2xl sm:p-8">
-                  <div className="mb-6 flex items-start justify-between gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-blue-400/20 bg-blue-400/10 text-blue-300">
-                      <BookOpenIcon size={22} />
-                    </div>
-                    <span className="rounded-full border border-white/10 bg-white/4 px-3 py-1 font-mono text-[11px] text-slate-300">
-                      {externalUrl.hostname.replace(/^www\./i, "")}
-                    </span>
-                  </div>
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-blue-300">
-                    Reader Mode / External Resource
-                  </p>
-                  <h3 className="text-xl font-semibold text-white">
-                    {topic.resource_label || topic.title}
-                  </h3>
-                  <p className="mt-3 text-sm leading-relaxed text-slate-400">
-                    {topic.description ||
-                      "This publisher restricts embedded viewing. Open the resource in a focused reader window to continue."}
-                  </p>
-                  <a
-                    href={externalUrl.toString()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-blue-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300 sm:w-auto"
+            <iframe
+              key={embedUrl}
+              src={embedUrl}
+              title={`${topic.title} video lesson`}
+              className="absolute inset-0 h-full w-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              referrerPolicy="strict-origin-when-cross-origin"
+            />
+          </div>
+          <section className="shrink-0 border-b border-white/10 px-4 py-5 sm:px-6">
+            <div className="mb-4 flex items-center gap-2">
+              <SparklesIcon size={16} className="text-amber-300" />
+              <h3 className="text-sm font-semibold text-white">
+                Video Summary
+              </h3>
+            </div>
+            {topic.key_takeaways?.length ? (
+              <ol className="space-y-3">
+                {topic.key_takeaways.map((point, index) => (
+                  <li
+                    key={`${topic.id}-takeaway-${index}`}
+                    className="flex gap-3 text-sm leading-relaxed text-slate-300"
                   >
-                    Open Resource in Focused Reader Window
-                    <ExternalLinkIcon size={15} />
-                  </a>
-                </div>
-              </div>
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-white/6 font-mono text-[11px] text-blue-300">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ol>
             ) : (
-              <div className="flex h-full min-h-[55vh] flex-col items-center justify-center gap-3 px-6 text-center">
-                <BookOpenIcon size={28} className="text-slate-500" />
-                <p className="text-sm font-medium text-slate-200">
-                  No embeddable resource is available for this topic.
-                </p>
-                <p className="max-w-md text-xs leading-relaxed text-slate-400">
-                  Select a resource link from the roadmap, or add a valid
-                  HTTP(S) resource URL to this topic.
-                </p>
-              </div>
+              <p className="text-sm leading-relaxed text-slate-400">
+                A summary is not available for this topic yet.
+              </p>
             )}
-          </div>
-          {isYouTubeVideo && (
-            <section className="shrink-0 border-b border-white/10 px-4 py-5 sm:px-6">
-              <div className="mb-4 flex items-center gap-2">
-                <SparklesIcon size={16} className="text-amber-300" />
-                <h3 className="text-sm font-semibold text-white">
-                  Video Summary / Key Takeaways
-                </h3>
-              </div>
-              {topic.key_takeaways?.length ? (
-                <ol className="space-y-3">
-                  {topic.key_takeaways.map((point, index) => (
-                    <li
-                      key={`${topic.id}-takeaway-${index}`}
-                      className="flex gap-3 text-sm leading-relaxed text-slate-300"
-                    >
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-white/6 font-mono text-[11px] text-blue-300">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                      <span>{point}</span>
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <p className="text-sm leading-relaxed text-slate-400">
-                  A video summary is not available for this topic yet.
-                </p>
-              )}
-            </section>
-          )}
-          <div className="flex shrink-0 items-center justify-between gap-3 border-t border-white/10 px-4 py-2.5 sm:px-6">
-            <p className="text-[11px] leading-relaxed text-slate-500">
-              Some publishers block embedded viewing.
-            </p>
-            {embedUrl && externalUrl && !embedFailed && (
-              <button
-                type="button"
-                onClick={() => setFailedEmbedUrl(embedUrl)}
-                className="shrink-0 text-[11px] font-medium text-blue-300 underline decoration-blue-300/40 underline-offset-4 transition hover:text-blue-200"
-              >
-                Show resource fallback
-              </button>
-            )}
-          </div>
+          </section>
         </section>
 
         <aside className="flex min-h-0 flex-col gap-4 bg-[#181819] p-4 sm:p-5 lg:col-span-4 lg:overflow-y-auto">
@@ -339,11 +292,7 @@ export function ResourceReader({
               ))}
             </div>
             <div className="mt-3 border-t border-white/10 pt-3">
-              <ProofOfLearning
-                key={topic.id}
-                topic={topic}
-                requireVideoQuiz={isYouTubeVideo}
-              />
+              <ProofOfLearning key={topic.id} topic={topic} requireVideoQuiz />
             </div>
           </section>
         </aside>
