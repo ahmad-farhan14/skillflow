@@ -47,8 +47,8 @@ const previewModules = [
 export default function LandingPage() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#131314] text-white">
-      <header className="border-b border-white/[0.08]">
-        <nav className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-5 sm:px-8">
+      <header className="border-b border-white/8">
+        <nav className="mx-auto flex h-18 max-w-6xl items-center justify-between px-5 sm:px-8">
           <Link href="/" className="flex items-center gap-2.5 font-semibold tracking-tight">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
               <Sparkles size={17} />
@@ -73,9 +73,9 @@ export default function LandingPage() {
       </header>
 
       <section className="relative px-5 pb-20 pt-20 sm:px-8 sm:pb-28 sm:pt-28">
-        <div className="pointer-events-none absolute left-1/2 top-0 -z-0 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-blue-600/[0.08] blur-[120px]" />
+        <div className="pointer-events-none absolute left-1/2 top-0 z-0 h-105 w-180 -translate-x-1/2 rounded-full bg-blue-600/8 blur-[120px]" />
         <div className="relative mx-auto max-w-4xl text-center">
-          <p className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3.5 py-1.5 text-xs text-[#C4C7C5]">
+          <p className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/3 px-3.5 py-1.5 text-xs text-[#C4C7C5]">
             <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
             A more focused way to grow
           </p>
@@ -98,7 +98,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/login"
-              className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.07]"
+              className="inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/3 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.07]"
             >
               Sign In
             </Link>
@@ -106,9 +106,9 @@ export default function LandingPage() {
         </div>
 
         <div className="relative mx-auto mt-16 max-w-4xl sm:mt-20">
-          <div className="absolute -inset-3 rounded-3xl bg-blue-500/[0.06] blur-2xl" />
+          <div className="absolute -inset-3 rounded-3xl bg-blue-500/6 blur-2xl" />
           <div className="relative overflow-hidden rounded-2xl border border-[#2E2E2F] bg-[#1E1E1F] shadow-2xl shadow-black/30">
-            <div className="flex h-12 items-center gap-2 border-b border-white/[0.08] px-4">
+            <div className="flex h-12 items-center gap-2 border-b border-white/8 px-4">
               <span className="h-2.5 w-2.5 rounded-full bg-[#4A4A4C]" />
               <span className="h-2.5 w-2.5 rounded-full bg-[#4A4A4C]" />
               <span className="h-2.5 w-2.5 rounded-full bg-[#4A4A4C]" />
@@ -136,13 +136,13 @@ export default function LandingPage() {
                   {previewModules.map((module) => (
                     <div
                       key={module.number}
-                      className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-[#19191A] p-3.5"
+                      className="flex items-center gap-3 rounded-xl border border-white/8 bg-[#19191A] p-3.5"
                     >
                       <span
                         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-mono text-xs ${
                           module.complete
                             ? "bg-emerald-500/15 text-emerald-400"
-                            : "bg-white/[0.06] text-[#C4C7C5]"
+                            : "bg-white/6 text-[#C4C7C5]"
                         }`}
                       >
                         {module.complete ? <Check size={15} /> : module.number}
@@ -159,7 +159,7 @@ export default function LandingPage() {
               </div>
 
               <aside className="space-y-4">
-                <div className="rounded-xl border border-white/[0.08] bg-[#19191A] p-4">
+                <div className="rounded-xl border border-white/8 bg-[#19191A] p-4">
                   <div className="flex items-center gap-2 text-sm font-medium">
                     <BookOpenCheck size={16} className="text-blue-400" />
                     Quick notes
@@ -168,11 +168,11 @@ export default function LandingPage() {
                     Semantic HTML gives content structure and meaning. Use
                     elements that describe what the content is...
                   </p>
-                  <div className="mt-3 border-t border-white/[0.08] pt-2 font-mono text-[10px] text-[#8E8E93]">
+                  <div className="mt-3 border-t border-white/8 pt-2 font-mono text-[10px] text-[#8E8E93]">
                     **Remember:** structure first
                   </div>
                 </div>
-                <div className="flex items-center justify-between rounded-xl border border-white/[0.08] bg-[#19191A] p-4">
+                <div className="flex items-center justify-between rounded-xl border border-white/8 bg-[#19191A] p-4">
                   <div>
                     <p className="text-xs text-[#8E8E93]">Current streak</p>
                     <p className="mt-1 font-mono text-lg font-medium">5 days</p>
@@ -185,7 +185,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="border-t border-white/[0.08] px-5 py-20 sm:px-8 sm:py-24">
+      <section className="border-t border-white/8 px-5 py-20 sm:px-8 sm:py-24">
         <div className="mx-auto max-w-6xl">
           <div className="max-w-2xl">
             <p className="font-mono text-xs uppercase tracking-[0.16em] text-blue-400">
@@ -221,7 +221,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-white/[0.08] px-5 py-7 sm:px-8">
+      <footer className="border-t border-white/8 px-5 py-7 sm:px-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-xs text-[#8E8E93] sm:flex-row">
           <span className="font-medium text-[#C4C7C5]">SkillFlow</span>
           <span>Make progress feel simple.</span>
