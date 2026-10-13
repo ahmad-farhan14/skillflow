@@ -139,17 +139,17 @@ export function ResourceReader({
   };
 
   return (
-    <div className="dark fixed inset-0 z-50 flex h-dvh flex-col overflow-hidden bg-[#131314] text-slate-100">
-      <header className="flex shrink-0 items-center justify-between gap-4 border-b border-white/10 px-4 py-3 sm:px-6">
+    <div className="fixed inset-0 z-50 flex h-dvh flex-col overflow-hidden bg-slate-50 text-slate-900 transition-colors duration-200 dark:bg-[#131314] dark:text-slate-100">
+      <header className="flex shrink-0 items-center justify-between gap-4 border-b border-slate-200 px-4 py-3 dark:border-white/10 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">
             <BookOpenIcon size={18} />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-[11px] text-slate-400">
+            <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
               {module.title}
             </p>
-            <h2 className="truncate text-sm font-semibold text-white sm:text-base">
+            <h2 className="truncate text-sm font-semibold text-slate-900 dark:text-white sm:text-base">
               {topic.title}
             </h2>
           </div>
@@ -158,7 +158,7 @@ export function ResourceReader({
           type="button"
           onClick={onClose}
           aria-label="Close reader"
-          className="flex shrink-0 items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-xs font-medium text-slate-300 transition hover:bg-white/10 hover:text-white"
+          className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
         >
           <XIcon size={15} />
           <span className="hidden sm:inline">Close reader</span>
@@ -166,14 +166,14 @@ export function ResourceReader({
       </header>
 
       <main className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-12 lg:overflow-hidden">
-        <section className="flex min-h-[60vh] flex-col border-b border-white/10 lg:col-span-8 lg:min-h-0 lg:overflow-y-auto lg:border-b-0 lg:border-r">
-          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6">
-            <p className="truncate text-xs text-slate-400">
+        <section className="flex min-h-[60vh] flex-col border-b border-slate-200 dark:border-white/10 lg:col-span-8 lg:min-h-0 lg:overflow-y-auto lg:border-b-0 lg:border-r">
+          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-white/10 sm:px-6">
+            <p className="truncate text-xs text-slate-500 dark:text-slate-400">
               {topic.resource_label || "Video lesson"}
             </p>
           </div>
 
-          <div className="relative min-h-[55vh] flex-1 bg-[#0c0c0d] lg:min-h-0">
+          <div className="relative min-h-[55vh] flex-1 bg-slate-200 dark:bg-[#0c0c0d] lg:min-h-0">
             <iframe
               key={embedUrl}
               src={embedUrl}
@@ -184,10 +184,10 @@ export function ResourceReader({
               referrerPolicy="strict-origin-when-cross-origin"
             />
           </div>
-          <section className="shrink-0 border-b border-white/10 px-4 py-5 sm:px-6">
+          <section className="shrink-0 border-b border-slate-200 px-4 py-5 dark:border-white/10 sm:px-6">
             <div className="mb-4 flex items-center gap-2">
               <SparklesIcon size={16} className="text-amber-300" />
-              <h3 className="text-sm font-semibold text-white">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
                 Video Summary
               </h3>
             </div>
@@ -196,9 +196,9 @@ export function ResourceReader({
                 {topic.key_takeaways.map((point, index) => (
                   <li
                     key={`${topic.id}-takeaway-${index}`}
-                    className="flex gap-3 text-sm leading-relaxed text-slate-300"
+                    className="flex gap-3 text-sm leading-relaxed text-slate-700 dark:text-slate-300"
                   >
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-white/6 font-mono text-[11px] text-blue-300">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-50 font-mono text-[11px] text-blue-600 dark:bg-white/6 dark:text-blue-300">
                       {String(index + 1).padStart(2, "0")}
                     </span>
                     <span>{point}</span>
@@ -206,29 +206,29 @@ export function ResourceReader({
                 ))}
               </ol>
             ) : (
-              <p className="text-sm leading-relaxed text-slate-400">
+              <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                 A summary is not available for this topic yet.
               </p>
             )}
           </section>
         </section>
 
-        <aside className="flex min-h-0 flex-col gap-4 bg-[#181819] p-4 sm:p-5 lg:col-span-4 lg:overflow-y-auto">
+        <aside className="flex min-h-0 flex-col gap-4 bg-slate-100 p-4 dark:bg-[#181819] sm:p-5 lg:col-span-4 lg:overflow-y-auto">
           <div className="max-h-[42vh] shrink-0 overflow-y-auto rounded-2xl">
             <QuickNotesCard />
           </div>
 
-          <section className="min-h-0 rounded-2xl border border-white/10 bg-[#202022] p-4">
+          <section className="min-h-0 rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-[#202022]">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <h3 className="text-sm font-semibold text-white">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
                   Module checklist
                 </h3>
-                <p className="mt-0.5 text-[11px] text-slate-400">
+                <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
                   Complete each topic after submitting its proof.
                 </p>
               </div>
-              <span className="shrink-0 rounded-full bg-white/5 px-2 py-1 font-mono text-[10px] text-slate-300">
+              <span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 font-mono text-[10px] text-slate-600 dark:bg-white/5 dark:text-slate-300">
                 {module.topics.filter((item) => item.is_completed).length}/
                 {module.topics.length}
               </span>
@@ -244,7 +244,9 @@ export function ResourceReader({
                 <div
                   key={item.id}
                   className={`flex items-start gap-2 rounded-lg px-2 py-2 ${
-                    topic.id === item.id ? "bg-white/[0.07]" : ""
+                    topic.id === item.id
+                      ? "bg-slate-100 dark:bg-white/[0.07]"
+                      : ""
                   }`}
                 >
                   <button
@@ -282,8 +284,8 @@ export function ResourceReader({
                     onClick={() => onSelectTopic(item)}
                     className={`min-w-0 flex-1 text-left text-xs leading-relaxed transition hover:text-blue-300 ${
                       item.is_completed
-                        ? "text-slate-400 line-through"
-                        : "text-slate-200"
+                        ? "text-slate-400 line-through dark:text-slate-400"
+                        : "text-slate-700 dark:text-slate-200"
                     }`}
                   >
                     {item.title}
@@ -291,8 +293,12 @@ export function ResourceReader({
                 </div>
               ))}
             </div>
-            <div className="mt-3 border-t border-white/10 pt-3">
-              <ProofOfLearning key={topic.id} topic={topic} requireVideoQuiz />
+            <div className="mt-3 border-t border-slate-200 pt-3 dark:border-white/10">
+              <ProofOfLearning
+                key={topic.id}
+                topic={topic}
+                requireVideoQuiz={Boolean(topic.key_takeaways?.length)}
+              />
             </div>
           </section>
         </aside>
