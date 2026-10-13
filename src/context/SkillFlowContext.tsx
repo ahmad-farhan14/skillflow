@@ -72,6 +72,83 @@ const STORAGE_KEYS = {
   THEME: "skillflow_theme_v1",
 };
 
+const PROGRESS_COLUMN_ALIASES: Record<string, string> = {
+  completed: "is_completed",
+  is_completed: "completed",
+  proof_response: "proof_text",
+  proof_text: "proof_response",
+  proof_score: "quiz_score",
+  quiz_score: "proof_score",
+};
+
+function getMissingProgressColumn(error: {
+  code?: string;
+  message: string;
+}): string | null {
+  if (
+    error.code !== "PGRST204" &&
+    error.code !== "42703" &&
+    !/schema cache/i.test(error.message)
+  ) {
+    return null;
+  }
+
+  return (
+    error.message.match(/Could not find the ['"]([\w]+)['"] column/i)?.[1] ??
+    error.message.match(/column ["']?[\w.]+\.["']?([\w]+)["']? does not exist/i)?.[1] ??
+    error.message.match(/column ["']?([\w]+)["']? of relation/i)?.[1] ??
+    null
+  );
+}
+
+function getProgressSaveErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+  return "Unknown database error.";
+}
+
+async function upsertTopicProgress(
+  supabase: ReturnType<typeof createClient>,
+  payload: Record<string, string | boolean | number | null>,
+) {
+  const compatiblePayload = { ...payload };
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const { error } = await supabase
+      .from("topic_learning_progress")
+      .upsert(compatiblePayload, { onConflict: "user_id,topic_id" });
+    if (!error) return;
+
+    const missingColumn = getMissingProgressColumn(error);
+    const alias = missingColumn
+      ? PROGRESS_COLUMN_ALIASES[missingColumn]
+      : undefined;
+    if (
+      !missingColumn ||
+      !alias ||
+      !(missingColumn in compatiblePayload) ||
+      alias in compatiblePayload
+    ) {
+      throw error;
+    }
+
+    console.warn(
+      `Retrying topic progress save with the "${alias}" column after "${missingColumn}" was not found.`,
+    );
+    compatiblePayload[alias] = compatiblePayload[missingColumn];
+    delete compatiblePayload[missingColumn];
+  }
+
+  throw new Error("Unable to save topic progress using the available database columns.");
+}
+
 // Clean synthesized pleasant audio chime using Web Audio API
 function playChime(success100 = false) {
   try {
@@ -394,35 +471,36 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
         throw new Error("Sign in to save validated topic progress.");
       }
 
+      const completedAt = isNowCompleted ? new Date().toISOString() : null;
       if (isNowCompleted) {
-        const { error } = await supabase.from("topic_learning_progress").upsert(
-          {
+        try {
+          await upsertTopicProgress(supabase, {
             user_id: user.id,
             topic_id: topicId,
             proof_response: normalizedProof,
             proof_score: proofScore ?? null,
-            completed: true,
-            completed_at: new Date().toISOString(),
-          },
-          { onConflict: "user_id,topic_id" },
-        );
-        if (error) {
-          throw new Error(`Unable to save your proof of learning: ${error.message}`);
+            is_completed: true,
+            completed_at: completedAt,
+          });
+        } catch (error) {
+          throw new Error(
+            `Unable to save your proof of learning: ${getProgressSaveErrorMessage(error)}`,
+          );
         }
       } else {
-        const { error } = await supabase.from("topic_learning_progress").upsert(
-          {
+        try {
+          await upsertTopicProgress(supabase, {
             user_id: user.id,
             topic_id: topicId,
             proof_response: null,
             proof_score: null,
-            completed: false,
-            completed_at: null,
-          },
-          { onConflict: "user_id,topic_id" },
-        );
-        if (error) {
-          throw new Error(`Unable to update your topic progress: ${error.message}`);
+            is_completed: false,
+            completed_at: completedAt,
+          });
+        } catch (error) {
+          throw new Error(
+            `Unable to update your topic progress: ${getProgressSaveErrorMessage(error)}`,
+          );
         }
       }
 
@@ -439,9 +517,7 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
                     ...t,
                     is_completed: isNowCompleted,
                     proof_score: isNowCompleted ? proofScore ?? null : null,
-                    completed_at: isNowCompleted
-                      ? new Date().toISOString()
-                      : null,
+                    completed_at: completedAt,
                   };
                 }
                 return t;

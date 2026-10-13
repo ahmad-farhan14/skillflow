@@ -32,12 +32,12 @@ export interface Topic {
 
 export interface VideoQuizOption {
   text: string;
-  isCorrect: boolean;
 }
 
 export interface VideoQuizQuestion {
   prompt: string;
   options: VideoQuizOption[];
+  correctIndex: number;
 }
 
 export interface TopicVideoLesson {

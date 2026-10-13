@@ -149,9 +149,14 @@ export function ResourceReader({
               />
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
-                <p className="text-sm text-slate-600 dark:text-slate-300">
-                  A verified video lesson is not available for this topic yet.
-                </p>
+                <div>
+                  <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                    Open this topic&apos;s learning resource
+                  </p>
+                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+                    This resource is available outside the video player.
+                  </p>
+                </div>
                 {topic.resource_url && (
                   <a
                     href={topic.resource_url}
@@ -167,7 +172,7 @@ export function ResourceReader({
           </div>
           <section className="shrink-0 border-b border-slate-200 px-4 py-5 dark:border-white/10 sm:px-6">
             <div className="mb-5 flex items-center gap-2">
-              <SparklesIcon size={16} className="text-amber-300" />
+              <SparklesIcon size={16} className="text-amber-500 dark:text-amber-300" />
               <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
                 Video Summary
               </h3>
@@ -237,7 +242,7 @@ export function ResourceReader({
             </div>
 
             {progressError && (
-              <p role="alert" className="mb-3 text-xs text-red-400">
+              <p role="alert" className="mb-3 text-xs text-red-600 dark:text-red-400">
                 {progressError}
               </p>
             )}
@@ -271,8 +276,8 @@ export function ResourceReader({
                     }
                     className={`mt-0.5 shrink-0 ${
                       item.is_completed
-                        ? "text-emerald-400 hover:text-amber-300"
-                        : "text-slate-500 hover:text-blue-300"
+                        ? "text-emerald-600 hover:text-amber-600 dark:text-emerald-400 dark:hover:text-amber-300"
+                        : "text-slate-500 hover:text-blue-600 dark:hover:text-blue-300"
                     }`}
                   >
                     {item.is_completed ? (
@@ -284,7 +289,7 @@ export function ResourceReader({
                   <button
                     type="button"
                     onClick={() => onSelectTopic(item)}
-                    className={`min-w-0 flex-1 text-left text-xs leading-relaxed transition hover:text-blue-300 ${
+                    className={`min-w-0 flex-1 text-left text-xs leading-relaxed transition hover:text-blue-600 dark:hover:text-blue-300 ${
                       item.is_completed
                         ? "text-slate-400 line-through dark:text-slate-400"
                         : "text-slate-700 dark:text-slate-200"

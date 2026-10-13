@@ -21,8 +21,15 @@ export function ProofOfLearning({ topic, videoLesson }: ProofOfLearningProps) {
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const quiz = videoLesson?.quiz ?? [];
+  const hasValidQuizAnswers = quiz.every(
+    (question) =>
+      Number.isInteger(question.correctIndex) &&
+      question.correctIndex >= 0 &&
+      question.correctIndex < question.options.length,
+  );
   const allAnswered =
     quiz.length > 0 &&
+    hasValidQuizAnswers &&
     quiz.every((_, questionIndex) => selectedAnswers[questionIndex] !== undefined);
   const score = submittedScore ?? topic.proof_score ?? null;
 
@@ -32,14 +39,14 @@ export function ProofOfLearning({ topic, videoLesson }: ProofOfLearningProps) {
     let proofResponse = reflection.trim();
     let proofScore: number | undefined;
     if (videoLesson) {
+      if (!hasValidQuizAnswers) {
+        setError("This quiz has an invalid answer key. Please contact support.");
+        return;
+      }
       if (!allAnswered) return;
       const correctAnswers = quiz.reduce(
         (total, question, questionIndex) =>
-          total +
-          Number(
-            question.options[selectedAnswers[questionIndex]]?.isCorrect ===
-              true,
-          ),
+          total + Number(selectedAnswers[questionIndex] === question.correctIndex),
         0,
       );
       proofScore = Math.round((correctAnswers / quiz.length) * 100);
@@ -94,10 +101,16 @@ export function ProofOfLearning({ topic, videoLesson }: ProofOfLearningProps) {
                 {question.options.map((option, optionIndex) => {
                   const selected =
                     selectedAnswers[questionIndex] === optionIndex;
+                  const isCorrectAnswer =
+                    optionIndex === question.correctIndex;
+                  const isIncorrectSelection =
+                    isSubmitted && selected && !isCorrectAnswer;
                   const resultClass = isSubmitted
-                    ? option.isCorrect
+                    ? isCorrectAnswer
                       ? "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100"
-                      : "border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/50 dark:text-red-200"
+                      : isIncorrectSelection
+                        ? "border-red-300 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/50 dark:text-red-200"
+                        : "border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400"
                     : selected
                       ? "border-blue-500 bg-blue-50 text-blue-900 dark:bg-blue-950/60 dark:text-blue-100"
                       : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-700";
@@ -117,7 +130,19 @@ export function ProofOfLearning({ topic, videoLesson }: ProofOfLearningProps) {
                       }}
                       className={`w-full rounded-lg border px-2.5 py-2 text-left text-[11px] leading-relaxed transition disabled:cursor-default ${resultClass}`}
                     >
-                      {option.text}
+                      <span className="flex items-center justify-between gap-2">
+                        <span>{option.text}</span>
+                        {isSubmitted && isCorrectAnswer && (
+                          <span className="shrink-0 font-semibold text-emerald-700 dark:text-emerald-300">
+                            Correct answer
+                          </span>
+                        )}
+                        {isIncorrectSelection && (
+                          <span className="shrink-0 font-semibold text-red-700 dark:text-red-300">
+                            Your answer
+                          </span>
+                        )}
+                      </span>
                     </button>
                   );
                 })}
