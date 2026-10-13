@@ -27,6 +27,24 @@ export interface Topic {
   is_completed: boolean;
   completed_at?: string | null;
   key_takeaways?: string[];
+  proof_score?: number | null;
+}
+
+export interface VideoQuizOption {
+  text: string;
+  isCorrect: boolean;
+}
+
+export interface VideoQuizQuestion {
+  prompt: string;
+  options: VideoQuizOption[];
+}
+
+export interface TopicVideoLesson {
+  videoUrl: string;
+  videoTitle: string;
+  takeaways: string[];
+  quiz: VideoQuizQuestion[];
 }
 
 export interface Module {

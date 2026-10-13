@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Module, Topic } from "../types";
 import { useSkillFlow } from "../context/SkillFlowContext";
+import { topicVideoLessons } from "../data/videoLessons";
 import { QuickNotesCard } from "./sidebar/QuickNotesCard";
 import { ProofOfLearning } from "./ProofOfLearning";
 import {
@@ -59,48 +60,6 @@ function getYouTubeVideoId(url: URL | null) {
   return videoId && /^[\w-]{11}$/.test(videoId) ? videoId : null;
 }
 
-const DEFAULT_VIDEO_IDS = {
-  html: "pQN-pnXPaVg",
-  css: "jV8B24rSN5o",
-  javascript: "W6NZfCO5SIk",
-  react: "bMknfKXIFA8",
-  next: "ZVnjOPwW4ZA",
-  ux: "c9Wg6Cb_YlU",
-  figma: "FTFaQWZBqQ8",
-} as const;
-
-function getDefaultVideoId(topic: Topic, module: Module) {
-  const subject = `${topic.title} ${module.title}`.toLowerCase();
-
-  if (subject.includes("figma")) return DEFAULT_VIDEO_IDS.figma;
-  if (
-    /ux|design|wirefram|persona|usability|user interview|prototype/.test(
-      subject,
-    )
-  ) {
-    return DEFAULT_VIDEO_IDS.ux;
-  }
-  if (/react|jsx|hooks|state management|zustand|component/.test(subject)) {
-    return DEFAULT_VIDEO_IDS.react;
-  }
-  if (
-    /next\.js|app router|server action|deployment|environment variable|api integration/.test(
-      subject,
-    )
-  ) {
-    return DEFAULT_VIDEO_IDS.next;
-  }
-  if (
-    /css|grid|flexbox|tailwind|responsive|typography|color theory/.test(subject)
-  ) {
-    return DEFAULT_VIDEO_IDS.css;
-  }
-  if (/html|semantic|accessibility|form|seo/.test(subject)) {
-    return DEFAULT_VIDEO_IDS.html;
-  }
-  return DEFAULT_VIDEO_IDS.javascript;
-}
-
 export function ResourceReader({
   topic,
   module,
@@ -110,13 +69,17 @@ export function ResourceReader({
   const { setSelectedModuleIdForNotes, toggleTopicCompletion } = useSkillFlow();
   const [progressError, setProgressError] = useState("");
   const [pendingTopicId, setPendingTopicId] = useState<string | null>(null);
-  const mappedVideoId = getYouTubeVideoId(getSafeResourceUrl(topic.video_url));
+  const videoLesson = topicVideoLessons[topic.id];
+  const mappedVideoId = getYouTubeVideoId(
+    getSafeResourceUrl(videoLesson?.videoUrl ?? topic.video_url),
+  );
   const resourceVideoId = getYouTubeVideoId(
     getSafeResourceUrl(topic.resource_url),
   );
-  const videoId =
-    mappedVideoId ?? resourceVideoId ?? getDefaultVideoId(topic, module);
-  const embedUrl = `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
+  const videoId = mappedVideoId ?? resourceVideoId;
+  const embedUrl = videoId
+    ? `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`
+    : null;
 
   useEffect(() => {
     setSelectedModuleIdForNotes(module.id);
@@ -169,20 +132,38 @@ export function ResourceReader({
         <section className="flex min-h-[60vh] flex-col border-b border-slate-200 dark:border-white/10 lg:col-span-8 lg:min-h-0 lg:overflow-y-auto lg:border-b-0 lg:border-r">
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-white/10 sm:px-6">
             <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-              {topic.resource_label || "Video lesson"}
+              {videoLesson?.videoTitle ?? topic.resource_label ?? "Learning resource"}
             </p>
           </div>
 
           <div className="relative min-h-[55vh] flex-1 bg-slate-200 dark:bg-[#0c0c0d] lg:min-h-0">
-            <iframe
-              key={embedUrl}
-              src={embedUrl}
-              title={`${topic.title} video lesson`}
-              className="absolute inset-0 h-full w-full border-0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              referrerPolicy="strict-origin-when-cross-origin"
-            />
+            {embedUrl ? (
+              <iframe
+                key={embedUrl}
+                src={embedUrl}
+                title={`${topic.title} video lesson`}
+                className="absolute inset-0 h-full w-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  A verified video lesson is not available for this topic yet.
+                </p>
+                {topic.resource_url && (
+                  <a
+                    href={topic.resource_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+                  >
+                    Open {topic.resource_label || "learning resource"}
+                  </a>
+                )}
+              </div>
+            )}
           </div>
           <section className="shrink-0 border-b border-slate-200 px-4 py-5 dark:border-white/10 sm:px-6">
             <div className="mb-4 flex items-center gap-2">
@@ -191,9 +172,9 @@ export function ResourceReader({
                 Video Summary
               </h3>
             </div>
-            {topic.key_takeaways?.length ? (
+            {videoLesson?.takeaways.length ? (
               <ol className="space-y-3">
-                {topic.key_takeaways.map((point, index) => (
+                {videoLesson.takeaways.map((point, index) => (
                   <li
                     key={`${topic.id}-takeaway-${index}`}
                     className="flex gap-3 text-sm leading-relaxed text-slate-700 dark:text-slate-300"
@@ -207,7 +188,7 @@ export function ResourceReader({
               </ol>
             ) : (
               <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                A summary is not available for this topic yet.
+                A verified summary is not available for this video yet.
               </p>
             )}
           </section>
@@ -225,7 +206,7 @@ export function ResourceReader({
                   Module checklist
                 </h3>
                 <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
-                  Complete each topic after submitting its proof.
+                  Submit the video quiz or a reflection to complete a topic.
                 </p>
               </div>
               <span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 font-mono text-[10px] text-slate-600 dark:bg-white/5 dark:text-slate-300">
@@ -288,8 +269,16 @@ export function ResourceReader({
                         : "text-slate-700 dark:text-slate-200"
                     }`}
                   >
-                    {item.title}
+                    <span>{item.title}</span>
                   </button>
+                  {item.is_completed && (
+                    <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                      {item.proof_score !== null &&
+                      item.proof_score !== undefined
+                        ? `${item.proof_score}%`
+                        : "Complete"}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -297,7 +286,7 @@ export function ResourceReader({
               <ProofOfLearning
                 key={topic.id}
                 topic={topic}
-                requireVideoQuiz={Boolean(topic.key_takeaways?.length)}
+                videoLesson={videoLesson}
               />
             </div>
           </section>

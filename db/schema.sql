@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS topic_learning_progress (
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     topic_id TEXT NOT NULL,
     proof_response TEXT,
+    proof_score SMALLINT CHECK (proof_score IS NULL OR proof_score BETWEEN 0 AND 100),
     is_completed BOOLEAN NOT NULL DEFAULT FALSE,
     completed_at TIMESTAMPTZ,
     PRIMARY KEY (user_id, topic_id),

@@ -42,7 +42,11 @@ interface SkillFlowContextType {
   setSearchQuery: (query: string) => void;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
-  toggleTopicCompletion: (topicId: string, proofResponse?: string) => Promise<void>;
+  toggleTopicCompletion: (
+    topicId: string,
+    proofResponse?: string,
+    proofScore?: number,
+  ) => Promise<void>;
   addCustomTopic: (
     moduleId: string,
     title: string,
@@ -208,7 +212,7 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
 
         const { data, error } = await supabase
           .from("topic_learning_progress")
-          .select("topic_id, is_completed, completed_at")
+          .select("topic_id, is_completed, completed_at, proof_score")
           .eq("user_id", user.id);
         if (error) {
           console.error("Failed to restore Supabase topic progress", error);
@@ -224,6 +228,7 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
             {
               is_completed: record.is_completed,
               completed_at: record.completed_at,
+              proof_score: record.proof_score,
             },
           ]),
         );
@@ -239,6 +244,7 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
                       ...topic,
                       is_completed: progress.is_completed,
                       completed_at: progress.completed_at,
+                      proof_score: progress.proof_score,
                     }
                   : topic;
               }),
@@ -347,7 +353,7 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
 
   // Toggle Topic completion
   const toggleTopicCompletion = useCallback(
-    async (topicId: string, proofResponse?: string) => {
+    async (topicId: string, proofResponse?: string, proofScore?: number) => {
       progressMutationVersion.current += 1;
       const topic = activeRoadmap.modules
         .flatMap((module) => module.topics)
@@ -363,6 +369,13 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
       }
       if (isNowCompleted && normalizedProof.length > 2000) {
         throw new Error("Your reflection must be 2,000 characters or fewer.");
+      }
+      if (
+        isNowCompleted &&
+        proofScore !== undefined &&
+        (!Number.isInteger(proofScore) || proofScore < 0 || proofScore > 100)
+      ) {
+        throw new Error("Quiz score must be a whole number from 0 to 100.");
       }
 
       if (!isSupabaseConfigured()) {
@@ -387,6 +400,7 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
             user_id: user.id,
             topic_id: topicId,
             proof_response: normalizedProof,
+            proof_score: proofScore ?? null,
             is_completed: true,
             completed_at: new Date().toISOString(),
           },
@@ -401,6 +415,7 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
             user_id: user.id,
             topic_id: topicId,
             proof_response: null,
+            proof_score: null,
             is_completed: false,
             completed_at: null,
           },
@@ -423,6 +438,7 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
                   return {
                     ...t,
                     is_completed: isNowCompleted,
+                    proof_score: isNowCompleted ? proofScore ?? null : null,
                     completed_at: isNowCompleted
                       ? new Date().toISOString()
                       : null,
