@@ -43,6 +43,7 @@ export interface VideoQuizQuestion {
 export interface TopicVideoLesson {
   videoUrl: string;
   videoTitle: string;
+  overview: string;
   takeaways: string[];
   quiz: VideoQuizQuestion[];
 }

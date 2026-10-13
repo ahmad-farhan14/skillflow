@@ -4,10 +4,13 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
   "t1000000-0000-0000-0000-000000000001": {
     videoUrl: "https://www.youtube.com/watch?v=qz0aGYrrlhU",
     videoTitle: "HTML Tutorial for Beginners: HTML Crash Course",
+    overview:
+      "This lesson introduces HTML as the foundation that gives web pages their content and structure. It walks through building a document from nested elements and choosing semantic tags so both browsers and people can understand each section.",
     takeaways: [
-      "HTML elements give page content meaning and structure.",
-      "Use semantic elements to describe the role of page sections.",
-      "Nest elements to build a meaningful document structure.",
+      "Start a page with the standard `<!doctype html>`, `<html>`, `<head>`, and `<body>` document structure.",
+      "Wrap content in matching opening and closing tags, such as `<h1>Title</h1>` and `<p>Text</p>`.",
+      "Choose semantic elements such as `<header>`, `<main>`, `<nav>`, and `<footer>` to communicate each region's purpose.",
+      "Nest child elements inside their parent and close them in reverse order to keep the document hierarchy valid.",
     ],
     quiz: [
       {
@@ -31,10 +34,13 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
   "t1000000-0000-0000-0000-000000000006": {
     videoUrl: "https://www.youtube.com/watch?v=phWxA89Dy94",
     videoTitle: "Learn Flexbox CSS in 8 minutes",
+    overview:
+      "This lesson explains Flexbox as a one-dimensional layout system for arranging items in a row or a column. It connects the container's main and cross axes to the properties used to align, distribute, and space its children.",
     takeaways: [
-      "Flexbox is designed for arranging items in one dimension.",
-      "The flex container controls layout along a main and a cross axis.",
-      "Use justify-content and align-items to distribute and align items.",
+      "Set `display: flex` on the parent to make its direct children flex items.",
+      "Use `flex-direction: row` or `column` to choose the main axis and the order of layout.",
+      "Apply `justify-content` along the main axis and `align-items` along the cross axis.",
+      "Use `gap` for consistent spacing between items instead of adding margins to each child.",
     ],
     quiz: [
       {
@@ -58,10 +64,13 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
   "t1000000-0000-0000-0000-000000000007": {
     videoUrl: "https://www.youtube.com/watch?v=EiNiSFIPIQE",
     videoTitle: "Learn CSS Grid - A 13 Minute Deep Dive",
+    overview:
+      "This lesson presents CSS Grid as a two-dimensional layout system for placing content across rows and columns. It covers defining grid tracks on a container and using fractional units to distribute available space between them.",
     takeaways: [
-      "CSS Grid lays out content across rows and columns.",
-      "Grid tracks are defined with properties such as grid-template-columns.",
-      "The fr unit distributes available space between grid tracks.",
+      "Turn a parent into a grid container with `display: grid` before defining its tracks.",
+      "Use `grid-template-columns: 1fr 1fr` or `repeat(3, 1fr)` to describe column sizing.",
+      "Use the `fr` unit to divide the remaining container space proportionally between tracks.",
+      "Set `gap` on the grid container to maintain consistent spacing between rows and columns.",
     ],
     quiz: [
       {
@@ -85,10 +94,13 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
   "t1000000-0000-0000-0000-000000000008": {
     videoUrl: "https://www.youtube.com/watch?v=mr15Xzb1Ook",
     videoTitle: "Tailwind in 100 Seconds",
+    overview:
+      "This lesson introduces Tailwind CSS's utility-first approach, where small classes apply individual styling decisions directly in markup. It shows how composing utilities and adding responsive variants can build and adapt an interface without leaving the component.",
     takeaways: [
-      "Tailwind CSS uses utility classes to style markup.",
-      "Small utility classes can be composed directly on an element.",
-      "Responsive variants apply utilities at chosen screen breakpoints.",
+      "Compose utility classes such as `flex`, `p-4`, and `text-sm` on the element that needs each style.",
+      "Combine layout and visual utilities on one element rather than creating a separate class for every combination.",
+      "Prefix a utility with a breakpoint variant, such as `md:flex`, to apply it at that screen size and above.",
+      "Use state variants such as `hover:bg-blue-600` to style interaction states alongside the base style.",
     ],
     quiz: [
       {
@@ -112,10 +124,13 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
   "t1000000-0000-0000-0000-000000000010": {
     videoUrl: "https://www.youtube.com/watch?v=W6NZfCO5SIk",
     videoTitle: "JavaScript Course for Beginners – Your First Step to Web Development",
+    overview:
+      "This lesson introduces JavaScript as the language that adds behavior and decision-making to web applications. It builds foundational programming ideas around values, variables, expressions, and reusable functions that accept input and produce results.",
     takeaways: [
-      "JavaScript adds behavior and logic to web applications.",
-      "Variables hold values that a program can use and update.",
-      "Functions group reusable steps and can accept input.",
+      "Declare a value that should not be reassigned with `const`; use `let` when reassignment is needed.",
+      "Store related data with suitable types, such as strings for text and numbers for arithmetic.",
+      "Define reusable behavior with a function, for example `function greet(name) { ... }`, and pass input through parameters.",
+      "Use `return` to send a function's result back to the code that called it.",
     ],
     quiz: [
       {
@@ -139,10 +154,13 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
   "t1000000-0000-0000-0000-000000000014": {
     videoUrl: "https://www.youtube.com/watch?v=bMknfKXIFA8",
     videoTitle: "React Course - Beginner's Tutorial for React JavaScript Library",
+    overview:
+      "This lesson introduces React's component-based approach to building user interfaces from small, reusable pieces. It explains how JSX describes the rendered interface and how components receive data through props and respond to changing state.",
     takeaways: [
-      "React interfaces are built from reusable components.",
-      "JSX lets components describe UI with a syntax resembling HTML.",
-      "Props pass data from a parent component to a child component.",
+      "Create a component as a function that returns the part of the interface it represents.",
+      "Write JSX to describe UI, and wrap sibling elements in one parent or a fragment.",
+      "Pass values from a parent to a child as props, then read them from the component's parameters.",
+      "Use state for values that change over time so React can re-render the component when they update.",
     ],
     quiz: [
       {
@@ -166,10 +184,13 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
   "t1000000-0000-0000-0000-000000000018": {
     videoUrl: "https://www.youtube.com/watch?v=ZVnjOPwW4ZA",
     videoTitle: "Next js Tutorial for Beginners | Nextjs 13 (App Router) with TypeScript",
+    overview:
+      "This lesson introduces the Next.js App Router and its file-system approach to organizing application routes and shared layouts. It also distinguishes server-rendered components from client components, helping developers choose where browser-side interactivity belongs.",
     takeaways: [
-      "The App Router organizes routes with files and folders.",
-      "Server Components render on the server by default in the App Router.",
-      "Client Components are used for browser-side interactivity.",
+      "Create route segments as folders under `app/` and expose a page with a `page.tsx` file.",
+      "Put shared UI in a `layout.tsx` file so it can wrap pages in that route segment.",
+      "Keep components as Server Components by default when they do not need browser APIs or event handlers.",
+      "Add the `'use client'` directive at a component boundary when state, effects, or browser interaction is required.",
     ],
     quiz: [
       {
@@ -193,10 +214,13 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
   "t1000000-0000-0000-0000-000000000025": {
     videoUrl: "https://www.youtube.com/watch?v=lsMQRaeKNDk",
     videoTitle: "What is a REST API?",
+    overview:
+      "This lesson explains how a REST API exposes resources that clients can access over HTTP. It connects resource URLs and HTTP methods with the idea of stateless requests, where each request carries the information needed for the server to process it.",
     takeaways: [
-      "A REST API lets clients interact with resources over HTTP.",
-      "HTTP methods describe the operation a client wants to perform.",
-      "A stateless request contains the information needed to process it.",
+      "Model API endpoints around resources, using URLs such as `/users/42` to identify a specific resource.",
+      "Use HTTP methods to express intent: `GET` to read, `POST` to create, `PUT` or `PATCH` to update, and `DELETE` to remove.",
+      "Return an appropriate HTTP status code so clients can distinguish success from errors.",
+      "Keep requests stateless by including the authentication and input needed for each operation rather than relying on hidden server-side session context.",
     ],
     quiz: [
       {
@@ -220,10 +244,13 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
   "t2000000-0000-0000-0000-000000000006": {
     videoUrl: "https://www.youtube.com/watch?v=c9Wg6Cb_YlU",
     videoTitle: "UI / UX Design Tutorial – Wireframe, Mockup & Design in Figma",
+    overview:
+      "This lesson walks through a UI/UX design workflow that moves from a wireframe to a polished mockup and then to an interactive prototype. It emphasizes solving the screen's structure and hierarchy before refining its visual details.",
     takeaways: [
-      "Wireframes focus on structure before visual polish.",
-      "Mockups add visual styling to a design.",
-      "Figma can be used to turn a design into an interface prototype.",
+      "Sketch a wireframe first to establish the screen layout, content hierarchy, and key user flow.",
+      "Use mockups to add colors, typography, and other visual styling after the structure is clear.",
+      "Keep spacing and alignment consistent so related content reads as a coherent interface.",
+      "Link screens in a prototype to demonstrate how a user moves through the design before implementation.",
     ],
     quiz: [
       {
@@ -247,10 +274,13 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
   "t2000000-0000-0000-0000-000000000007": {
     videoUrl: "https://www.youtube.com/watch?v=FTFaQWZBqQ8",
     videoTitle: "Figma UI Design Tutorial: Get Started in Just 24 Minutes!",
+    overview:
+      "This lesson introduces Figma's canvas and core tools for designing interface screens. It shows how frames organize a design, how reusable elements improve consistency, and how those screens can be connected into a prototype.",
     takeaways: [
-      "Figma provides a canvas for creating and arranging interface designs.",
-      "Frames represent screens or regions in a design.",
-      "Reusable design elements help keep interface work consistent.",
+      "Create a frame for each screen or bounded region so its dimensions and contents stay organized.",
+      "Use layers to select, rename, and arrange individual interface elements in a predictable hierarchy.",
+      "Turn repeated UI into reusable components so shared changes stay consistent across screens.",
+      "Connect frames in prototype mode to preview navigation and communicate the intended interaction flow.",
     ],
     quiz: [
       {

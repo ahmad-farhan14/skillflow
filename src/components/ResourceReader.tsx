@@ -166,26 +166,47 @@ export function ResourceReader({
             )}
           </div>
           <section className="shrink-0 border-b border-slate-200 px-4 py-5 dark:border-white/10 sm:px-6">
-            <div className="mb-4 flex items-center gap-2">
+            <div className="mb-5 flex items-center gap-2">
               <SparklesIcon size={16} className="text-amber-300" />
               <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
                 Video Summary
               </h3>
             </div>
-            {videoLesson?.takeaways.length ? (
-              <ol className="space-y-3">
-                {videoLesson.takeaways.map((point, index) => (
-                  <li
-                    key={`${topic.id}-takeaway-${index}`}
-                    className="flex gap-3 text-sm leading-relaxed text-slate-700 dark:text-slate-300"
-                  >
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-50 font-mono text-[11px] text-blue-600 dark:bg-white/6 dark:text-blue-300">
-                      {String(index + 1).padStart(2, "0")}
+            {videoLesson?.overview && videoLesson.takeaways.length ? (
+              <div className="space-y-5">
+                <section className="rounded-xl border border-blue-100 bg-blue-50/70 p-4 dark:border-blue-400/15 dark:bg-blue-400/[0.06]">
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">
+                    Overview
+                  </h4>
+                  <p className="text-sm leading-7 text-slate-700 dark:text-slate-300">
+                    {videoLesson.overview}
+                  </p>
+                </section>
+
+                <section>
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                      Key takeaways
+                    </h4>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      {videoLesson.takeaways.length} practical points
                     </span>
-                    <span>{point}</span>
-                  </li>
-                ))}
-              </ol>
+                  </div>
+                  <ol className="space-y-3">
+                    {videoLesson.takeaways.map((point, index) => (
+                      <li
+                        key={`${topic.id}-takeaway-${index}`}
+                        className="flex gap-3 text-sm leading-6 text-slate-700 dark:text-slate-300"
+                      >
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-100 font-mono text-[11px] font-semibold text-blue-700 dark:bg-blue-400/10 dark:text-blue-300">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              </div>
             ) : (
               <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                 A verified summary is not available for this video yet.
