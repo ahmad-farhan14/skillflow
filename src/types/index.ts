@@ -37,7 +37,8 @@ export interface VideoQuizOption {
 export interface VideoQuizQuestion {
   prompt: string;
   options: VideoQuizOption[];
-  correctIndex: number;
+  correctIndex?: number;
+  correctAnswer?: string;
 }
 
 export interface TopicVideoLesson {

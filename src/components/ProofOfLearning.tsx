@@ -1,13 +1,34 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { Topic, TopicVideoLesson } from "../types";
+import { Topic, TopicVideoLesson, VideoQuizQuestion } from "../types";
 import { useSkillFlow } from "../context/SkillFlowContext";
 import { CheckCircleIcon, SparklesIcon } from "./icons";
 
 interface ProofOfLearningProps {
   topic: Topic;
   videoLesson?: TopicVideoLesson;
+}
+
+function getCorrectOptionIndex(question: VideoQuizQuestion) {
+  const index = question.correctIndex;
+  const answerIndexes = question.options.flatMap((option, optionIndex) =>
+    option.text === question.correctAnswer ? [optionIndex] : [],
+  );
+
+  if (
+    index !== undefined &&
+    Number.isInteger(index) &&
+    index >= 0 &&
+    index < question.options.length
+  ) {
+    return question.correctAnswer === undefined ||
+      question.options[index]?.text === question.correctAnswer
+      ? index
+      : null;
+  }
+
+  return answerIndexes.length === 1 ? answerIndexes[0] : null;
 }
 
 export function ProofOfLearning({ topic, videoLesson }: ProofOfLearningProps) {
@@ -21,16 +42,22 @@ export function ProofOfLearning({ topic, videoLesson }: ProofOfLearningProps) {
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const quiz = videoLesson?.quiz ?? [];
-  const hasValidQuizAnswers = quiz.every(
-    (question) =>
-      Number.isInteger(question.correctIndex) &&
-      question.correctIndex >= 0 &&
-      question.correctIndex < question.options.length,
-  );
-  const allAnswered =
+  const hasValidQuizAnswers =
     quiz.length > 0 &&
+    quiz.every((question) => getCorrectOptionIndex(question) !== null);
+  const allAnswered =
     hasValidQuizAnswers &&
-    quiz.every((_, questionIndex) => selectedAnswers[questionIndex] !== undefined);
+    quiz.every(
+      (_, questionIndex) => selectedAnswers[questionIndex] !== undefined,
+    );
+  const correctAnswers = quiz.reduce(
+    (total, question, questionIndex) =>
+      total +
+      Number(
+        selectedAnswers[questionIndex] === getCorrectOptionIndex(question),
+      ),
+    0,
+  );
   const score = submittedScore ?? topic.proof_score ?? null;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -40,15 +67,12 @@ export function ProofOfLearning({ topic, videoLesson }: ProofOfLearningProps) {
     let proofScore: number | undefined;
     if (videoLesson) {
       if (!hasValidQuizAnswers) {
-        setError("This quiz has an invalid answer key. Please contact support.");
+        setError(
+          "This quiz has an invalid answer key. Please contact support.",
+        );
         return;
       }
       if (!allAnswered) return;
-      const correctAnswers = quiz.reduce(
-        (total, question, questionIndex) =>
-          total + Number(selectedAnswers[questionIndex] === question.correctIndex),
-        0,
-      );
       proofScore = Math.round((correctAnswers / quiz.length) * 100);
       proofResponse = `Video quiz score: ${proofScore}%. ${correctAnswers}/${quiz.length} answers correct.`;
       setSubmittedScore(proofScore);
@@ -90,7 +114,8 @@ export function ProofOfLearning({ topic, videoLesson }: ProofOfLearningProps) {
       {videoLesson && (!topic.is_completed || isSubmitted) ? (
         <form onSubmit={handleSubmit} className="space-y-3">
           <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-            Answer every question to submit your score for {videoLesson.videoTitle}.
+            Answer every question to submit your score for{" "}
+            {videoLesson.videoTitle}.
           </p>
           {quiz.map((question, questionIndex) => (
             <fieldset key={`${topic.id}-quiz-${questionIndex}`}>
@@ -102,7 +127,7 @@ export function ProofOfLearning({ topic, videoLesson }: ProofOfLearningProps) {
                   const selected =
                     selectedAnswers[questionIndex] === optionIndex;
                   const isCorrectAnswer =
-                    optionIndex === question.correctIndex;
+                    optionIndex === getCorrectOptionIndex(question);
                   const isIncorrectSelection =
                     isSubmitted && selected && !isCorrectAnswer;
                   const resultClass = isSubmitted
@@ -154,7 +179,7 @@ export function ProofOfLearning({ topic, videoLesson }: ProofOfLearningProps) {
               aria-live="polite"
               className="text-sm font-semibold text-slate-900 dark:text-slate-100"
             >
-              Score: {score}%
+              Score: {score}% · {correctAnswers}/{quiz.length} correct
             </p>
           )}
           {!topic.is_completed && (
