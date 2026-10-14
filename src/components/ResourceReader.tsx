@@ -132,7 +132,9 @@ export function ResourceReader({
         <section className="flex min-h-[60vh] flex-col border-b border-slate-200 dark:border-white/10 lg:col-span-8 lg:min-h-0 lg:overflow-y-auto lg:border-b-0 lg:border-r">
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-white/10 sm:px-6">
             <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-              {videoLesson?.videoTitle ?? topic.resource_label ?? "Learning resource"}
+              {videoLesson?.videoTitle ??
+                topic.resource_label ??
+                "Learning resource"}
             </p>
           </div>
 
@@ -172,14 +174,17 @@ export function ResourceReader({
           </div>
           <section className="shrink-0 border-b border-slate-200 px-4 py-5 dark:border-white/10 sm:px-6">
             <div className="mb-5 flex items-center gap-2">
-              <SparklesIcon size={16} className="text-amber-500 dark:text-amber-300" />
+              <SparklesIcon
+                size={16}
+                className="text-amber-500 dark:text-amber-300"
+              />
               <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
                 Video Summary
               </h3>
             </div>
             {videoLesson?.overview && videoLesson.takeaways.length ? (
               <div className="space-y-5">
-                <section className="rounded-xl border border-blue-100 bg-blue-50/70 p-4 dark:border-blue-400/15 dark:bg-blue-400/[0.06]">
+                <section className="rounded-xl border border-blue-100 bg-blue-50/70 p-4 dark:border-blue-400/15 dark:bg-blue-400/6">
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">
                     Overview
                   </h4>
@@ -242,7 +247,10 @@ export function ResourceReader({
             </div>
 
             {progressError && (
-              <p role="alert" className="mb-3 text-xs text-red-600 dark:text-red-400">
+              <p
+                role="alert"
+                className="mb-3 text-xs text-red-600 dark:text-red-400"
+              >
                 {progressError}
               </p>
             )}
