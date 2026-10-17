@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { Topic, TopicVideoLesson, VideoQuizQuestion } from "../types";
 import { useSkillFlow } from "../context/SkillFlowContext";
+import { shuffleQuizForAttempt } from "../utils/quiz";
 import { CheckCircleIcon, SparklesIcon } from "./icons";
 
 interface ProofOfLearningProps {
@@ -37,11 +38,12 @@ export function ProofOfLearning({ topic, videoLesson }: ProofOfLearningProps) {
   const [selectedAnswers, setSelectedAnswers] = useState<
     Record<number, number>
   >({});
+  const [hasStarted, setHasStarted] = useState(false);
   const [submittedScore, setSubmittedScore] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const quiz = videoLesson?.quiz ?? [];
+  const [quiz, setQuiz] = useState(videoLesson?.quiz ?? []);
   const hasValidQuizAnswers =
     quiz.length > 0 &&
     quiz.every((question) => getCorrectOptionIndex(question) !== null);
@@ -112,7 +114,23 @@ export function ProofOfLearning({ topic, videoLesson }: ProofOfLearningProps) {
         </p>
       )}
 
-      {videoLesson && (!topic.is_completed || isSubmitted) ? (
+      {videoLesson && !topic.is_completed && !hasStarted ? (
+        <div className="space-y-3">
+          <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+            Start a five-question quiz based on {videoLesson.videoTitle}.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setQuiz(shuffleQuizForAttempt(videoLesson.quiz));
+              setHasStarted(true);
+            }}
+            className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-500"
+          >
+            Start video quiz
+          </button>
+        </div>
+      ) : videoLesson && (!topic.is_completed || isSubmitted) ? (
         <form onSubmit={handleSubmit} className="space-y-3">
           <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-400">
             Answer every question to submit your score for{" "}

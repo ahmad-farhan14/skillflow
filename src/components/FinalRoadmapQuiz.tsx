@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useSkillFlow } from "../context/SkillFlowContext";
 import { topicVideoLessons } from "../data/videoLessons";
-import { buildRoadmapFinalQuiz } from "../utils/quiz";
+import { buildRoadmapFinalQuiz, shuffleQuizForAttempt } from "../utils/quiz";
 import { CheckCircleIcon, SparklesIcon } from "./icons";
 
 export function FinalRoadmapQuiz() {
@@ -32,7 +32,8 @@ export function FinalRoadmapQuiz() {
         : [];
     }),
   );
-  const quiz = buildRoadmapFinalQuiz(sources);
+  const [quiz, setQuiz] = useState(() => buildRoadmapFinalQuiz(sources));
+  const [hasStarted, setHasStarted] = useState(false);
   const isUnlocked =
     stats.totalTopics > 0 && stats.completedTopics === stats.totalTopics;
   const answeredCount = Object.keys(selectedAnswers).length;
@@ -45,6 +46,15 @@ export function FinalRoadmapQuiz() {
     ? Math.round((correctAnswers / quiz.length) * 100)
     : 0;
   const allAnswered = quiz.length >= 10 && answeredCount === quiz.length;
+
+  const handleRetake = () => {
+    setSelectedAnswers({});
+    setQuiz(shuffleQuizForAttempt(buildRoadmapFinalQuiz(sources)));
+    setHasStarted(true);
+    setIsSubmitted(false);
+    setIsSaved(false);
+    setError("");
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -107,6 +117,23 @@ export function FinalRoadmapQuiz() {
           This roadmap needs at least 10 mapped video-summary takeaways to build
           the final exam.
         </p>
+      ) : !hasStarted ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-slate-600 dark:text-slate-400">
+            Start a randomized {quiz.length}-question exam drawn from this
+            roadmap&apos;s video takeaways.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setQuiz(shuffleQuizForAttempt(buildRoadmapFinalQuiz(sources)));
+              setHasStarted(true);
+            }}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-500"
+          >
+            Begin certificate exam
+          </button>
+        </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-5">
           {roadmapExamProgress?.is_completed && !isSubmitted && (
@@ -186,21 +213,29 @@ export function FinalRoadmapQuiz() {
                 ? `Final score: ${score}% · ${correctAnswers}/${quiz.length} correct`
                 : `Live score: ${answeredCount ? Math.round((correctAnswers / answeredCount) * 100) : 0}% · ${answeredCount}/${quiz.length} answered`}
             </div>
-            <button
-              type="submit"
-              disabled={isSaving || !allAnswered || isSaved}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isSaving
-                ? "Saving..."
-                : isSaved
-                  ? "Exam submitted"
+            {isSaved ? (
+              <button
+                type="button"
+                onClick={handleRetake}
+                className="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/15 dark:text-slate-200 dark:hover:bg-white/5"
+              >
+                Retake exam
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={isSaving || !allAnswered}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isSaving
+                  ? "Saving..."
                   : isSubmitted
                     ? "Retry save"
                     : roadmapExamProgress?.is_completed
                       ? "Submit retake"
                       : "Submit final exam"}
-            </button>
+              </button>
+            )}
           </div>
           {error && (
             <p role="alert" className="text-xs text-red-600 dark:text-red-400">

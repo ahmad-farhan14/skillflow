@@ -8,6 +8,7 @@ import React, {
   useMemo,
   useCallback,
   useRef,
+  startTransition,
 } from "react";
 import confetti from "canvas-confetti";
 import {
@@ -119,6 +120,68 @@ function getProgressSaveErrorMessage(error: unknown) {
   return "Unknown database error.";
 }
 
+function resetRoadmapProgress(roadmaps: Roadmap[]): Roadmap[] {
+  return roadmaps.map((roadmap) => ({
+    ...roadmap,
+    modules: roadmap.modules.map((module) => ({
+      ...module,
+      topics: module.topics.map((topic) => ({
+        ...topic,
+        is_completed: false,
+        completed_at: null,
+        proof_score: 0,
+      })),
+    })),
+  }));
+}
+
+async function fetchTopicProgress(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+) {
+  let completedColumn = "is_completed";
+  let scoreColumn = "proof_score";
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const { data, error } = await supabase
+      .from("topic_learning_progress")
+      .select(`topic_id, ${completedColumn}, completed_at, ${scoreColumn}`)
+      .eq("user_id", userId);
+
+    if (!error) {
+      const records = (data ?? []) as unknown as Array<Record<string, unknown>>;
+      return records.map((record) => ({
+        topic_id: String(record.topic_id),
+        is_completed: Boolean(record[completedColumn]),
+        completed_at:
+          typeof record.completed_at === "string" ? record.completed_at : null,
+        proof_score:
+          typeof record[scoreColumn] === "number"
+            ? (record[scoreColumn] as number)
+            : null,
+      }));
+    }
+
+    const missingColumn = getMissingProgressColumn(error);
+    const alias = missingColumn
+      ? PROGRESS_COLUMN_ALIASES[missingColumn]
+      : undefined;
+    if (missingColumn === completedColumn && alias) {
+      completedColumn = alias;
+      continue;
+    }
+    if (missingColumn === scoreColumn && alias) {
+      scoreColumn = alias;
+      continue;
+    }
+    throw error;
+  }
+
+  throw new Error(
+    "Unable to restore topic progress using the available database columns.",
+  );
+}
+
 async function upsertTopicProgress(
   supabase: ReturnType<typeof createClient>,
   payload: Record<string, string | boolean | number | null>,
@@ -206,7 +269,9 @@ function playChime(success100 = false) {
 }
 
 export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
-  const [roadmaps, setRoadmaps] = useState<Roadmap[]>(initialRoadmaps);
+  const [roadmaps, setRoadmaps] = useState<Roadmap[]>(() =>
+    resetRoadmapProgress(initialRoadmaps),
+  );
   const [roadmapExamProgressBySlug, setRoadmapExamProgressBySlug] = useState<
     Record<string, RoadmapExamProgress>
   >({});
@@ -225,10 +290,18 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
+  const [isProgressHydrated, setIsProgressHydrated] = useState(
+    () => !isSupabaseConfigured(),
+  );
   const progressMutationVersion = useRef(0);
 
   // Load state from localStorage on initial mount
   useEffect(() => {
+    let restoredRoadmaps: Roadmap[] | null = null;
+    let restoredProfile: UserProfile | null = null;
+    let restoredNotes: Note[] | null = null;
+    let restoredSlug: string | null = null;
+    let restoredTheme: boolean | null = null;
     try {
       const savedRoadmaps = localStorage.getItem(STORAGE_KEYS.ROADMAPS);
       const savedProfile = localStorage.getItem(STORAGE_KEYS.PROFILE);
@@ -236,13 +309,15 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
       const savedSlug = localStorage.getItem(STORAGE_KEYS.ACTIVE_SLUG);
       const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
 
-      if (savedRoadmaps) setRoadmaps(JSON.parse(savedRoadmaps));
-      if (savedProfile) setUserProfile(JSON.parse(savedProfile));
-      if (savedNotes) setNotes(JSON.parse(savedNotes));
-      if (savedSlug) setActiveRoadmapSlug(savedSlug);
+      if (savedRoadmaps) {
+        restoredRoadmaps = resetRoadmapProgress(JSON.parse(savedRoadmaps));
+      }
+      if (savedProfile) restoredProfile = JSON.parse(savedProfile);
+      if (savedNotes) restoredNotes = JSON.parse(savedNotes);
+      if (savedSlug) restoredSlug = savedSlug;
 
       const initialDark = savedTheme ? savedTheme === "dark" : true;
-      setIsDarkMode(initialDark);
+      restoredTheme = initialDark;
       if (initialDark) {
         document.documentElement.classList.add("dark");
       } else {
@@ -254,7 +329,14 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       console.error("Failed to load SkillFlow state from localStorage", e);
     } finally {
-      setIsHydrated(true);
+      startTransition(() => {
+        if (restoredRoadmaps) setRoadmaps(restoredRoadmaps);
+        if (restoredProfile) setUserProfile(restoredProfile);
+        if (restoredNotes) setNotes(restoredNotes);
+        if (restoredSlug) setActiveRoadmapSlug(restoredSlug);
+        if (restoredTheme !== null) setIsDarkMode(restoredTheme);
+        setIsHydrated(true);
+      });
     }
   }, []);
 
@@ -283,40 +365,29 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
     if (!isHydrated || !isSupabaseConfigured()) return;
 
     let cancelled = false;
-    const restoreStartedAtVersion = progressMutationVersion.current;
-    const restoreSupabaseProgress = async () => {
-      try {
-        const supabase = createClient();
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
-        if (userError) {
-          console.error(
-            "Failed to verify account for progress sync",
-            userError,
-          );
-          return;
-        }
-        if (!user) return;
+    let activeUserId: string | null | undefined;
+    let restoreVersion = 0;
+    const supabase = createClient();
 
-        const { data, error } = await supabase
-          .from("topic_learning_progress")
-          .select("topic_id, is_completed, completed_at, proof_score")
-          .eq("user_id", user.id);
-        if (error) {
-          console.error("Failed to restore Supabase topic progress", error);
-          return;
-        }
-        if (
-          cancelled ||
-          restoreStartedAtVersion !== progressMutationVersion.current
-        ) {
-          return;
-        }
+    const restoreUserProgress = async (userId: string | null) => {
+      if (activeUserId === userId) return;
+      activeUserId = userId;
+      const currentVersion = ++restoreVersion;
+      setIsProgressHydrated(false);
+      setRoadmaps((current) => resetRoadmapProgress(current));
+      setRoadmapExamProgressBySlug({});
+
+      if (!userId) {
+        setIsProgressHydrated(true);
+        return;
+      }
+
+      try {
+        const progressRecords = await fetchTopicProgress(supabase, userId);
+        if (cancelled || currentVersion !== restoreVersion) return;
 
         const progressByTopic = new Map(
-          data.map((record) => [
+          progressRecords.map((record) => [
             record.topic_id,
             {
               is_completed: record.is_completed,
@@ -332,39 +403,38 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
               ...module,
               topics: module.topics.map((topic) => {
                 const progress = progressByTopic.get(topic.id);
-                return progress
-                  ? {
-                      ...topic,
-                      is_completed: progress.is_completed,
-                      completed_at: progress.completed_at,
-                      proof_score: progress.proof_score,
-                    }
-                  : topic;
+                return {
+                  ...topic,
+                  is_completed: progress?.is_completed ?? false,
+                  completed_at: progress?.completed_at ?? null,
+                  proof_score: progress?.proof_score ?? 0,
+                };
               }),
             })),
           })),
         );
 
-        const { data: examRecords, error: examError } = await supabase
-          .from("roadmap_learning_progress")
-          .select("roadmap_slug, final_exam_score, is_completed, completed_at")
-          .eq("user_id", user.id);
-        if (examError) {
+        let examRecords;
+        try {
+          const { data, error } = await supabase
+            .from("roadmap_learning_progress")
+            .select(
+              "roadmap_slug, final_exam_score, is_completed, completed_at",
+            )
+            .eq("user_id", userId);
+          if (error) throw error;
+          examRecords = data;
+        } catch (examError) {
           console.error(
             "Failed to restore Supabase roadmap exam progress",
             examError,
           );
           return;
         }
-        if (
-          cancelled ||
-          restoreStartedAtVersion !== progressMutationVersion.current
-        ) {
-          return;
-        }
+        if (cancelled || currentVersion !== restoreVersion) return;
         setRoadmapExamProgressBySlug(
           Object.fromEntries(
-            examRecords.map((record) => [
+            (examRecords ?? []).map((record) => [
               record.roadmap_slug,
               {
                 final_exam_score: record.final_exam_score,
@@ -375,13 +445,30 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
           ),
         );
       } catch (error) {
-        console.error("Failed to restore Supabase topic progress", error);
+        console.error("Failed to restore Supabase user progress", error);
+        if (!cancelled && currentVersion === restoreVersion) {
+          setRoadmaps((current) => resetRoadmapProgress(current));
+          setRoadmapExamProgressBySlug({});
+        }
+      } finally {
+        if (!cancelled && currentVersion === restoreVersion) {
+          setIsProgressHydrated(true);
+        }
       }
     };
 
-    void restoreSupabaseProgress();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const userId = session?.user.id ?? null;
+      window.setTimeout(() => {
+        if (!cancelled) void restoreUserProgress(userId);
+      }, 0);
+    });
+
     return () => {
       cancelled = true;
+      subscription.unsubscribe();
     };
   }, [isHydrated]);
 
@@ -805,7 +892,7 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
         "Reset SkillFlow data back to default roadmap presets & progress?",
       )
     ) {
-      setRoadmaps(initialRoadmaps);
+      setRoadmaps(resetRoadmapProgress(initialRoadmaps));
       setUserProfile(initialUserProfile);
       setNotes(initialNotes);
       localStorage.removeItem(STORAGE_KEYS.ROADMAPS);
@@ -839,7 +926,7 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
     switchRoadmap,
     triggerCelebration,
     resetToDefaultSeed,
-    isHydrated,
+    isHydrated: isHydrated && isProgressHydrated,
   };
 
   return (

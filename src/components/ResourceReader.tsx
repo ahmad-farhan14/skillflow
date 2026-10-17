@@ -6,6 +6,7 @@ import { useSkillFlow } from "../context/SkillFlowContext";
 import { topicVideoLessons } from "../data/videoLessons";
 import { QuickNotesCard } from "./sidebar/QuickNotesCard";
 import { ProofOfLearning } from "./ProofOfLearning";
+import { ThemeToggle } from "./ThemeToggle";
 import {
   BookOpenIcon,
   CheckCircleIcon,
@@ -117,15 +118,18 @@ export function ResourceReader({
             </h2>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close reader"
-          className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
-        >
-          <XIcon size={15} />
-          <span className="hidden sm:inline">Close reader</span>
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <ThemeToggle />
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close reader"
+            className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+          >
+            <XIcon size={15} />
+            <span className="hidden sm:inline">Close reader</span>
+          </button>
+        </div>
       </header>
 
       <main className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-12 lg:overflow-hidden">
@@ -202,19 +206,16 @@ export function ResourceReader({
                       {videoLesson.takeaways.length} practical points
                     </span>
                   </div>
-                  <ol className="space-y-3">
+                  <ul className="list-disc space-y-3 pl-5 marker:text-blue-500">
                     {videoLesson.takeaways.map((point, index) => (
                       <li
                         key={`${topic.id}-takeaway-${index}`}
-                        className="flex gap-3 text-sm leading-6 text-slate-700 dark:text-slate-300"
+                        className="pl-1 text-sm leading-6 text-slate-700 dark:text-slate-300"
                       >
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-100 font-mono text-[11px] font-semibold text-blue-700 dark:bg-blue-400/10 dark:text-blue-300">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
                         <span>{point}</span>
                       </li>
                     ))}
-                  </ol>
+                  </ul>
                 </section>
               </div>
             ) : (
@@ -318,7 +319,7 @@ export function ResourceReader({
             </div>
             <div className="mt-3 border-t border-slate-200 pt-3 dark:border-white/10">
               <ProofOfLearning
-                key={topic.id}
+                key={`${topic.id}-${topic.is_completed}`}
                 topic={topic}
                 videoLesson={videoLesson}
               />

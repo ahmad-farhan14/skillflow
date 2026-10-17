@@ -15,10 +15,76 @@ interface TakeawayEntry {
   text: string;
 }
 
+function shuffle<T>(items: T[]): T[] {
+  const shuffled = [...items];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [
+      shuffled[swapIndex],
+      shuffled[index],
+    ];
+  }
+  return shuffled;
+}
+
+function getCorrectOptionIndex(question: VideoQuizQuestion) {
+  const index = question.correctIndex;
+  if (
+    index !== undefined &&
+    Number.isInteger(index) &&
+    index >= 0 &&
+    index < question.options.length
+  ) {
+    return question.correctAnswer === undefined ||
+      question.options[index]?.text === question.correctAnswer
+      ? index
+      : null;
+  }
+
+  const answerIndexes = question.options.flatMap((option, optionIndex) =>
+    option.text === question.correctAnswer ? [optionIndex] : [],
+  );
+  return answerIndexes.length === 1 ? answerIndexes[0] : null;
+}
+
+export function shuffleQuizForAttempt(
+  questions: VideoQuizQuestion[],
+): VideoQuizQuestion[] {
+  return shuffle(
+    questions.map((question) => {
+      const correctIndex = getCorrectOptionIndex(question);
+      const options = shuffle(question.options);
+      return {
+        ...question,
+        options,
+        correctIndex:
+          correctIndex === null
+            ? question.correctIndex
+            : options.findIndex(
+                (option) => option === question.options[correctIndex],
+              ),
+      };
+    }),
+  );
+}
+
 function createTakeawayQuestions(
   correctEntries: TakeawayEntry[],
   allEntries: TakeawayEntry[],
 ): VideoQuizQuestion[] {
+  const promptTemplates = [
+    (title: string, focus: string) =>
+      `Which recommendation about "${focus}" appears in "${title}"'s summary?`,
+    (title: string, focus: string) =>
+      `According to "${title}", what should you do about "${focus}"?`,
+    (title: string, focus: string) =>
+      `Which statement about "${focus}" aligns with "${title}"?`,
+    (title: string, focus: string) =>
+      `What does "${title}" advise when working with "${focus}"?`,
+    (title: string, focus: string) =>
+      `Which practice concerning "${focus}" is supported by "${title}"?`,
+  ];
+
   return correctEntries.map((entry, questionIndex) => {
     const distractors: TakeawayEntry[] = [];
     for (let offset = 0; offset < allEntries.length; offset += 1) {
@@ -37,9 +103,16 @@ function createTakeawayQuestions(
     const correctIndex = questionIndex % 3;
     const options = distractors.map(({ text }) => ({ text }));
     options.splice(correctIndex, 0, { text: entry.text });
+    const focus = entry.text
+      .replace(/`/g, "")
+      .split(/[.;!?]/, 1)[0]
+      .slice(0, 55);
 
     return {
-      prompt: `Which practice is a key takeaway from "${entry.videoTitle}"?`,
+      prompt: promptTemplates[questionIndex % promptTemplates.length](
+        entry.videoTitle,
+        focus,
+      ),
       options,
       correctIndex,
     };
@@ -81,12 +154,14 @@ export function buildRoadmapFinalQuiz(
   }
 
   const moduleGroups = [...sourcesByModule.values()];
-  const correctEntries: TakeawayEntry[] = moduleGroups.flatMap((group) => {
-    const source = group.find((item) => item.takeaways.length > 0);
-    return source?.takeaways[0]
-      ? [{ ...source, text: source.takeaways[0] }]
-      : [];
-  });
+  const correctEntries: TakeawayEntry[] = moduleGroups
+    .flatMap((group) => {
+      const source = group.find((item) => item.takeaways.length > 0);
+      return source?.takeaways[0]
+        ? [{ ...source, text: source.takeaways[0] }]
+        : [];
+    })
+    .slice(0, 15);
   for (let takeawayIndex = 1; correctEntries.length < 15; takeawayIndex += 1) {
     for (const group of moduleGroups) {
       for (const source of group) {
