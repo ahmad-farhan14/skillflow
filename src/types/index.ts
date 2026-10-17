@@ -99,3 +99,9 @@ export interface RoadmapStats {
   totalModules: number;
   completedModules: number;
 }
+
+export interface RoadmapExamProgress {
+  final_exam_score: number;
+  is_completed: boolean;
+  completed_at: string | null;
+}

@@ -17,6 +17,7 @@ import {
   RoadmapStats,
   Topic,
   Module,
+  RoadmapExamProgress,
 } from "../types";
 import {
   initialRoadmaps,
@@ -35,6 +36,7 @@ interface SkillFlowContextType {
   selectedModuleIdForNotes: string | null;
   setSelectedModuleIdForNotes: (id: string | null) => void;
   stats: RoadmapStats;
+  roadmapExamProgress: RoadmapExamProgress | null;
   nextUpTopic: Topic | null;
   filterStatus: "all" | "completed" | "remaining";
   setFilterStatus: (filter: "all" | "completed" | "remaining") => void;
@@ -47,6 +49,7 @@ interface SkillFlowContextType {
     proofResponse?: string,
     proofScore?: number,
   ) => Promise<void>;
+  submitFinalExam: (score: number) => Promise<void>;
   addCustomTopic: (
     moduleId: string,
     title: string,
@@ -95,7 +98,9 @@ function getMissingProgressColumn(error: {
 
   return (
     error.message.match(/Could not find the ['"]([\w]+)['"] column/i)?.[1] ??
-    error.message.match(/column ["']?[\w.]+\.["']?([\w]+)["']? does not exist/i)?.[1] ??
+    error.message.match(
+      /column ["']?[\w.]+\.["']?([\w]+)["']? does not exist/i,
+    )?.[1] ??
     error.message.match(/column ["']?([\w]+)["']? of relation/i)?.[1] ??
     null
   );
@@ -146,7 +151,9 @@ async function upsertTopicProgress(
     delete compatiblePayload[missingColumn];
   }
 
-  throw new Error("Unable to save topic progress using the available database columns.");
+  throw new Error(
+    "Unable to save topic progress using the available database columns.",
+  );
 }
 
 // Clean synthesized pleasant audio chime using Web Audio API
@@ -200,6 +207,9 @@ function playChime(success100 = false) {
 
 export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>(initialRoadmaps);
+  const [roadmapExamProgressBySlug, setRoadmapExamProgressBySlug] = useState<
+    Record<string, RoadmapExamProgress>
+  >({});
   const [userProfile, setUserProfile] =
     useState<UserProfile>(initialUserProfile);
   const [notes, setNotes] = useState<Note[]>(initialNotes);
@@ -282,7 +292,10 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
           error: userError,
         } = await supabase.auth.getUser();
         if (userError) {
-          console.error("Failed to verify account for progress sync", userError);
+          console.error(
+            "Failed to verify account for progress sync",
+            userError,
+          );
           return;
         }
         if (!user) return;
@@ -295,7 +308,10 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
           console.error("Failed to restore Supabase topic progress", error);
           return;
         }
-        if (cancelled || restoreStartedAtVersion !== progressMutationVersion.current) {
+        if (
+          cancelled ||
+          restoreStartedAtVersion !== progressMutationVersion.current
+        ) {
           return;
         }
 
@@ -327,6 +343,36 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
               }),
             })),
           })),
+        );
+
+        const { data: examRecords, error: examError } = await supabase
+          .from("roadmap_learning_progress")
+          .select("roadmap_slug, final_exam_score, is_completed, completed_at")
+          .eq("user_id", user.id);
+        if (examError) {
+          console.error(
+            "Failed to restore Supabase roadmap exam progress",
+            examError,
+          );
+          return;
+        }
+        if (
+          cancelled ||
+          restoreStartedAtVersion !== progressMutationVersion.current
+        ) {
+          return;
+        }
+        setRoadmapExamProgressBySlug(
+          Object.fromEntries(
+            examRecords.map((record) => [
+              record.roadmap_slug,
+              {
+                final_exam_score: record.final_exam_score,
+                is_completed: record.is_completed,
+                completed_at: record.completed_at,
+              },
+            ]),
+          ),
         );
       } catch (error) {
         console.error("Failed to restore Supabase topic progress", error);
@@ -405,6 +451,8 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
       completedModules,
     };
   }, [activeRoadmap]);
+  const roadmapExamProgress =
+    roadmapExamProgressBySlug[activeRoadmap.slug] ?? null;
 
   // First uncompleted topic (for "Continue Next" quick action)
   const nextUpTopic = useMemo(() => {
@@ -442,7 +490,9 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
       const isNowCompleted = !topic.is_completed;
       const normalizedProof = proofResponse?.trim() ?? "";
       if (isNowCompleted && normalizedProof.length < 20) {
-        throw new Error("Write at least 20 characters in your reflection before completing this topic.");
+        throw new Error(
+          "Write at least 20 characters in your reflection before completing this topic.",
+        );
       }
       if (isNowCompleted && normalizedProof.length > 2000) {
         throw new Error("Your reflection must be 2,000 characters or fewer.");
@@ -456,7 +506,9 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (!isSupabaseConfigured()) {
-        throw new Error("Supabase is not configured. Set the Supabase URL and publishable key before saving progress.");
+        throw new Error(
+          "Supabase is not configured. Set the Supabase URL and publishable key before saving progress.",
+        );
       }
 
       const supabase = createClient();
@@ -502,6 +554,36 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
             `Unable to update your topic progress: ${getProgressSaveErrorMessage(error)}`,
           );
         }
+
+        if (roadmapExamProgressBySlug[activeRoadmap.slug]?.is_completed) {
+          const { error } = await supabase
+            .from("roadmap_learning_progress")
+            .upsert(
+              {
+                user_id: user.id,
+                roadmap_slug: activeRoadmap.slug,
+                final_exam_score:
+                  roadmapExamProgressBySlug[activeRoadmap.slug]
+                    .final_exam_score,
+                is_completed: false,
+                completed_at: null,
+              },
+              { onConflict: "user_id,roadmap_slug" },
+            );
+          if (error) {
+            throw new Error(
+              `Unable to update roadmap completion: ${error.message}`,
+            );
+          }
+          setRoadmapExamProgressBySlug((current) => ({
+            ...current,
+            [activeRoadmap.slug]: {
+              ...current[activeRoadmap.slug],
+              is_completed: false,
+              completed_at: null,
+            },
+          }));
+        }
       }
 
       setRoadmaps((prevRoadmaps: Roadmap[]) =>
@@ -516,7 +598,7 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
                   return {
                     ...t,
                     is_completed: isNowCompleted,
-                    proof_score: isNowCompleted ? proofScore ?? null : null,
+                    proof_score: isNowCompleted ? (proofScore ?? null) : null,
                     completed_at: completedAt,
                   };
                 }
@@ -556,7 +638,68 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
         }
       }
     },
-    [activeRoadmap, stats, triggerCelebration],
+    [activeRoadmap, roadmapExamProgressBySlug, stats, triggerCelebration],
+  );
+
+  const submitFinalExam = useCallback(
+    async (score: number) => {
+      const topics = activeRoadmap.modules.flatMap((module) => module.topics);
+      if (topics.length === 0 || topics.some((topic) => !topic.is_completed)) {
+        throw new Error(
+          "Complete every roadmap topic before taking the final exam.",
+        );
+      }
+      if (!Number.isInteger(score) || score < 0 || score > 100) {
+        throw new Error(
+          "Final exam score must be a whole number from 0 to 100.",
+        );
+      }
+      if (!isSupabaseConfigured()) {
+        throw new Error(
+          "Supabase is not configured. Set the Supabase URL and publishable key before saving progress.",
+        );
+      }
+
+      const supabase = createClient();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError) {
+        throw new Error(`Unable to verify your account: ${userError.message}`);
+      }
+      if (!user) {
+        throw new Error("Sign in to save your final roadmap exam.");
+      }
+
+      const completedAt = new Date().toISOString();
+      const { error } = await supabase.from("roadmap_learning_progress").upsert(
+        {
+          user_id: user.id,
+          roadmap_slug: activeRoadmap.slug,
+          final_exam_score: score,
+          is_completed: true,
+          completed_at: completedAt,
+        },
+        { onConflict: "user_id,roadmap_slug" },
+      );
+      if (error) {
+        throw new Error(
+          `Unable to save your final roadmap exam: ${error.message}`,
+        );
+      }
+
+      setRoadmapExamProgressBySlug((current) => ({
+        ...current,
+        [activeRoadmap.slug]: {
+          final_exam_score: score,
+          is_completed: true,
+          completed_at: completedAt,
+        },
+      }));
+      triggerCelebration();
+    },
+    [activeRoadmap, triggerCelebration],
   );
 
   // Add custom topic inline
@@ -681,6 +824,7 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
     selectedModuleIdForNotes,
     setSelectedModuleIdForNotes,
     stats,
+    roadmapExamProgress,
     nextUpTopic,
     filterStatus,
     setFilterStatus,
@@ -689,6 +833,7 @@ export function SkillFlowProvider({ children }: { children: React.ReactNode }) {
     isDarkMode,
     toggleDarkMode,
     toggleTopicCompletion,
+    submitFinalExam,
     addCustomTopic,
     saveCurrentNote,
     switchRoadmap,

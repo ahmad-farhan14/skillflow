@@ -50,6 +50,7 @@ export function ProofOfLearning({ topic, videoLesson }: ProofOfLearningProps) {
     quiz.every(
       (_, questionIndex) => selectedAnswers[questionIndex] !== undefined,
     );
+  const answeredCount = Object.keys(selectedAnswers).length;
   const correctAnswers = quiz.reduce(
     (total, question, questionIndex) =>
       total +
@@ -128,9 +129,11 @@ export function ProofOfLearning({ topic, videoLesson }: ProofOfLearningProps) {
                     selectedAnswers[questionIndex] === optionIndex;
                   const isCorrectAnswer =
                     optionIndex === getCorrectOptionIndex(question);
+                  const hasAnswered =
+                    selectedAnswers[questionIndex] !== undefined;
                   const isIncorrectSelection =
-                    isSubmitted && selected && !isCorrectAnswer;
-                  const resultClass = isSubmitted
+                    hasAnswered && selected && !isCorrectAnswer;
+                  const resultClass = hasAnswered
                     ? isCorrectAnswer
                       ? "border-emerald-500 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100"
                       : isIncorrectSelection
@@ -157,7 +160,7 @@ export function ProofOfLearning({ topic, videoLesson }: ProofOfLearningProps) {
                     >
                       <span className="flex items-center justify-between gap-2">
                         <span>{option.text}</span>
-                        {isSubmitted && isCorrectAnswer && (
+                        {hasAnswered && isCorrectAnswer && (
                           <span className="shrink-0 font-semibold text-emerald-700 dark:text-emerald-300">
                             Correct answer
                           </span>
@@ -182,10 +185,19 @@ export function ProofOfLearning({ topic, videoLesson }: ProofOfLearningProps) {
               Score: {score}% · {correctAnswers}/{quiz.length} correct
             </p>
           )}
+          {!isSubmitted && answeredCount > 0 && (
+            <p
+              aria-live="polite"
+              className="text-xs font-medium text-slate-700 dark:text-slate-300"
+            >
+              Live score: {Math.round((correctAnswers / answeredCount) * 100)}%
+              · {correctAnswers}/{answeredCount} answered
+            </p>
+          )}
           {!topic.is_completed && (
             <div className="flex items-center justify-between gap-3">
               <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                {Object.keys(selectedAnswers).length}/{quiz.length} answered
+                {answeredCount}/{quiz.length} answered
               </span>
               <button
                 type="submit"

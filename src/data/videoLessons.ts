@@ -1,4 +1,5 @@
 import { TopicVideoLesson } from "../types";
+import { buildTopicVideoQuiz } from "../utils/quiz";
 
 function createVideoLesson(
   videoUrl: string,
@@ -30,7 +31,7 @@ function createVideoLesson(
   };
 }
 
-export const topicVideoLessons: Record<string, TopicVideoLesson> = {
+const lessonSources: Record<string, TopicVideoLesson> = {
   "t1000000-0000-0000-0000-000000000001": {
     videoUrl: "https://www.youtube.com/watch?v=qz0aGYrrlhU",
     videoTitle: "HTML Tutorial for Beginners: HTML Crash Course",
@@ -76,7 +77,8 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     quiz: [
       {
-        prompt: "Flexbox is primarily designed for layouts in how many dimensions?",
+        prompt:
+          "Flexbox is primarily designed for layouts in how many dimensions?",
         correctIndex: 1,
         options: [
           { text: "Two" },
@@ -161,7 +163,8 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
   },
   "t1000000-0000-0000-0000-000000000010": {
     videoUrl: "https://www.youtube.com/watch?v=W6NZfCO5SIk",
-    videoTitle: "JavaScript Course for Beginners – Your First Step to Web Development",
+    videoTitle:
+      "JavaScript Course for Beginners – Your First Step to Web Development",
     overview:
       "This lesson introduces JavaScript as the language that adds behavior and decision-making to web applications. It builds foundational programming ideas around values, variables, expressions, and reusable functions that accept input and produce results.",
     takeaways: [
@@ -193,7 +196,8 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
   },
   "t1000000-0000-0000-0000-000000000014": {
     videoUrl: "https://www.youtube.com/watch?v=bMknfKXIFA8",
-    videoTitle: "React Course - Beginner's Tutorial for React JavaScript Library [2022]",
+    videoTitle:
+      "React Course - Beginner's Tutorial for React JavaScript Library [2022]",
     overview:
       "This lesson introduces React's component-based approach to building user interfaces from small, reusable pieces. It explains how JSX describes the rendered interface and how components receive data through props and respond to changing state.",
     takeaways: [
@@ -225,7 +229,8 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
   },
   "t1000000-0000-0000-0000-000000000018": {
     videoUrl: "https://www.youtube.com/watch?v=ZVnjOPwW4ZA",
-    videoTitle: "Next js Tutorial for Beginners | Nextjs 13 (App Router) with TypeScript",
+    videoTitle:
+      "Next js Tutorial for Beginners | Nextjs 13 (App Router) with TypeScript",
     overview:
       "This lesson introduces the Next.js App Router and its file-system approach to organizing application routes and shared layouts. It also distinguishes server-rendered components from client components, helping developers choose where browser-side interactivity belongs.",
     takeaways: [
@@ -280,7 +285,9 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
         prompt: "What does a stateless request imply?",
         correctIndex: 1,
         options: [
-          { text: "The server must remember the previous request's full state" },
+          {
+            text: "The server must remember the previous request's full state",
+          },
           { text: "Each request carries the information needed to process it" },
           { text: "The client must keep a persistent connection open" },
         ],
@@ -363,7 +370,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What should you prefer when a native element already provides the required semantics?",
     "Use the native HTML element before adding ARIA.",
-    ["Replace it with a generic div and add visual styling.", "Add ARIA roles to every element by default."],
+    [
+      "Replace it with a generic div and add visual styling.",
+      "Add ARIA roles to every element by default.",
+    ],
     1,
   ),
   "t1000000-0000-0000-0000-000000000003": createVideoLesson(
@@ -378,7 +388,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "How do you clear a custom validity message after a field becomes valid?",
     "Call `setCustomValidity('')` on the input.",
-    ["Remove the input's `required` attribute.", "Call `form.reset()` after every keystroke."],
+    [
+      "Remove the input's `required` attribute.",
+      "Call `form.reset()` after every keystroke.",
+    ],
     0,
   ),
   "t1000000-0000-0000-0000-000000000004": createVideoLesson(
@@ -387,7 +400,7 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     "This lesson explains how JSON-LD structured data is placed in a page and how search engines can use it to understand content. It complements page titles, descriptions, and social metadata by showing how structured facts are represented for crawlers.",
     [
       "Add a descriptive, unique `<title>` and meta description to each page.",
-      "Represent supported structured information in a JSON-LD `<script type=\"application/ld+json\">` block.",
+      'Represent supported structured information in a JSON-LD `<script type="application/ld+json">` block.',
       "Keep structured data accurate and consistent with content visible on the page.",
       "Validate markup with Google's Rich Results Test and treat eligibility as separate from a ranking guarantee.",
     ],
@@ -408,7 +421,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What is a practical reason to use CSS cascade layers?",
     "They make groups of styles follow an explicit, predictable precedence order.",
-    ["They disable the specificity calculation for every declaration.", "They replace the box model and remove element dimensions."],
+    [
+      "They disable the specificity calculation for every declaration.",
+      "They replace the box model and remove element dimensions.",
+    ],
     1,
   ),
   "t1000000-0000-0000-0000-000000000009": createVideoLesson(
@@ -423,7 +439,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What does a container query measure to decide when its styles apply?",
     "The size of a designated ancestor container.",
-    ["The user's device pixel ratio.", "The width of the browser's full viewport only."],
+    [
+      "The user's device pixel ratio.",
+      "The width of the browser's full viewport only.",
+    ],
     1,
   ),
   "t1000000-0000-0000-0000-000000000011": createVideoLesson(
@@ -438,7 +457,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "Why can event delegation handle a list item added after the listener is registered?",
     "The parent listener receives the new item's bubbled events.",
-    ["The browser automatically attaches a copy of the listener to each new item.", "The event is converted into a capture-only event."],
+    [
+      "The browser automatically attaches a copy of the listener to each new item.",
+      "The event is converted into a capture-only event.",
+    ],
     2,
   ),
   "t1000000-0000-0000-0000-000000000012": createVideoLesson(
@@ -453,7 +475,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What does `await` do inside an async function?",
     "It waits for a promise to settle before continuing that function.",
-    ["It blocks the browser's entire JavaScript thread until completion.", "It converts every rejected promise into a successful value."],
+    [
+      "It blocks the browser's entire JavaScript thread until completion.",
+      "It converts every rejected promise into a successful value.",
+    ],
     0,
   ),
   "t1000000-0000-0000-0000-000000000013": createVideoLesson(
@@ -483,7 +508,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "When should you use a functional state update?",
     "When the next state depends on the current state value.",
-    ["Whenever a component renders for the first time.", "To mutate an object directly without triggering a render."],
+    [
+      "Whenever a component renders for the first time.",
+      "To mutate an object directly without triggering a render.",
+    ],
     1,
   ),
   "t1000000-0000-0000-0000-000000000016": createVideoLesson(
@@ -498,7 +526,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What is the primary purpose of `useEffect`?",
     "Synchronizing a component with an external system.",
-    ["Declaring a value that is recalculated during rendering.", "Replacing event handlers for every user interaction."],
+    [
+      "Declaring a value that is recalculated during rendering.",
+      "Replacing event handlers for every user interaction.",
+    ],
     0,
   ),
   "t1000000-0000-0000-0000-000000000017": createVideoLesson(
@@ -513,7 +544,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What does a custom Hook primarily let you reuse?",
     "Stateful logic and synchronization behavior between components.",
-    ["A single shared state instance for every component using the Hook.", "A way to call React Hooks conditionally."],
+    [
+      "A single shared state instance for every component using the Hook.",
+      "A way to call React Hooks conditionally.",
+    ],
     2,
   ),
   "t1000000-0000-0000-0000-000000000019": createVideoLesson(
@@ -543,7 +577,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "Where should a Server Action validate submitted form data?",
     "On the server, before applying the mutation.",
-    ["Only in client-side form validation.", "After returning success to the browser."],
+    [
+      "Only in client-side form validation.",
+      "After returning success to the browser.",
+    ],
     0,
   ),
   "t1000000-0000-0000-0000-000000000021": createVideoLesson(
@@ -573,7 +610,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What role does the reducer play in a Context + useReducer setup?",
     "It calculates the next state from the current state and dispatched action.",
-    ["It automatically persists state to a database.", "It renders provider children directly."],
+    [
+      "It automatically persists state to a database.",
+      "It renders provider children directly.",
+    ],
     2,
   ),
   "t1000000-0000-0000-0000-000000000023": createVideoLesson(
@@ -588,7 +628,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "Why use a selector when reading from a Zustand store?",
     "To subscribe a component to only the state it needs.",
-    ["To make the store available without creating it.", "To turn the store into a server component."],
+    [
+      "To make the store available without creating it.",
+      "To turn the store into a server component.",
+    ],
     1,
   ),
   "t1000000-0000-0000-0000-000000000024": createVideoLesson(
@@ -603,7 +646,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What is a TanStack Query key used for?",
     "Identifying and organizing a cached server-state result.",
-    ["Declaring a React component's local state.", "Replacing the server's HTTP status code."],
+    [
+      "Declaring a React component's local state.",
+      "Replacing the server's HTTP status code.",
+    ],
     0,
   ),
   "t1000000-0000-0000-0000-000000000026": createVideoLesson(
@@ -618,7 +664,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What happens when a Next.js environment variable is prefixed with `NEXT_PUBLIC_`?",
     "It can be exposed to code sent to the browser.",
-    ["It becomes encrypted and safe for any secret.", "It is automatically omitted from every client bundle."],
+    [
+      "It becomes encrypted and safe for any secret.",
+      "It is automatically omitted from every client bundle.",
+    ],
     1,
   ),
   "t1000000-0000-0000-0000-000000000027": createVideoLesson(
@@ -633,7 +682,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What is a preview deployment useful for?",
     "Reviewing a branch's changes before they are promoted to production.",
-    ["Replacing all production environment variables permanently.", "Skipping the build step on every deployment."],
+    [
+      "Replacing all production environment variables permanently.",
+      "Skipping the build step on every deployment.",
+    ],
     2,
   ),
   "t1000000-0000-0000-0000-000000000028": createVideoLesson(
@@ -648,7 +700,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What does LCP measure?",
     "How quickly the largest visible content element is rendered.",
-    ["How many JavaScript files are in the source tree.", "The number of layout shifts after the page is closed."],
+    [
+      "How many JavaScript files are in the source tree.",
+      "The number of layout shifts after the page is closed.",
+    ],
     1,
   ),
   "t2000000-0000-0000-0000-000000000001": createVideoLesson(
@@ -663,7 +718,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What is the main purpose of prototyping in design thinking?",
     "To make an idea tangible so it can be tested and improved.",
-    ["To lock the design before gathering user input.", "To replace the need to define a user problem."],
+    [
+      "To lock the design before gathering user input.",
+      "To replace the need to define a user problem.",
+    ],
     0,
   ),
   "t2000000-0000-0000-0000-000000000002": createVideoLesson(
@@ -678,7 +736,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What should a useful journey map be grounded in?",
     "Evidence about real user goals, actions, and pain points.",
-    ["A team's assumptions about a typical customer.", "A list of visual design trends."],
+    [
+      "A team's assumptions about a typical customer.",
+      "A list of visual design trends.",
+    ],
     2,
   ),
   "t2000000-0000-0000-0000-000000000003": createVideoLesson(
@@ -693,7 +754,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What does a heuristic evaluation compare an interface against?",
     "Established usability principles or heuristics.",
-    ["Only the product's brand colors.", "A single participant's personal preference."],
+    [
+      "Only the product's brand colors.",
+      "A single participant's personal preference.",
+    ],
     1,
   ),
   "t2000000-0000-0000-0000-000000000004": createVideoLesson(
@@ -708,7 +772,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What can card sorting reveal?",
     "How users group and label information.",
-    ["Which button color produces the highest contrast.", "Whether a page's JavaScript bundle is too large."],
+    [
+      "Which button color produces the highest contrast.",
+      "Whether a page's JavaScript bundle is too large.",
+    ],
     0,
   ),
   "t2000000-0000-0000-0000-000000000005": createVideoLesson(
@@ -723,7 +790,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What should a user flow make clear?",
     "The sequence of steps and decisions a user takes to reach a goal.",
-    ["The final shadow and elevation values of every component.", "The database indexes used by the production app."],
+    [
+      "The final shadow and elevation values of every component.",
+      "The database indexes used by the production app.",
+    ],
     2,
   ),
   "t2000000-0000-0000-0000-000000000008": createVideoLesson(
@@ -738,7 +808,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What does Fill container tell an Auto Layout child to do?",
     "Use the available space offered by its parent.",
-    ["Resize itself to the exact dimensions of its text.", "Ignore the parent frame's layout rules."],
+    [
+      "Resize itself to the exact dimensions of its text.",
+      "Ignore the parent frame's layout rules.",
+    ],
     0,
   ),
   "t2000000-0000-0000-0000-000000000009": createVideoLesson(
@@ -753,7 +826,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What is a benefit of component properties in Figma?",
     "They let instances expose controlled variations while staying connected to the component.",
-    ["They automatically convert every frame into a prototype.", "They remove the need to organize component variants."],
+    [
+      "They automatically convert every frame into a prototype.",
+      "They remove the need to organize component variants.",
+    ],
     1,
   ),
   "t2000000-0000-0000-0000-000000000010": createVideoLesson(
@@ -768,7 +844,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What does a typographic scale help establish?",
     "A consistent visual hierarchy between text sizes.",
-    ["A fixed grid column count for every screen.", "The contrast ratio between two colors."],
+    [
+      "A fixed grid column count for every screen.",
+      "The contrast ratio between two colors.",
+    ],
     2,
   ),
   "t2000000-0000-0000-0000-000000000011": createVideoLesson(
@@ -783,7 +862,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "Why define role-based color tokens?",
     "They keep colors consistent and make global theme changes easier.",
-    ["They guarantee every color passes contrast without testing.", "They replace the need for interaction states."],
+    [
+      "They guarantee every color passes contrast without testing.",
+      "They replace the need for interaction states.",
+    ],
     0,
   ),
   "t2000000-0000-0000-0000-000000000012": createVideoLesson(
@@ -813,7 +895,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "When is Smart Animate most useful?",
     "When matching layers between frames should animate their changes.",
-    ["When the prototype contains no frames or layers.", "When every transition must open an external website."],
+    [
+      "When the prototype contains no frames or layers.",
+      "When every transition must open an external website.",
+    ],
     2,
   ),
   "t2000000-0000-0000-0000-000000000014": createVideoLesson(
@@ -828,7 +913,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What do interactive components help prototype?",
     "Reusable component states and transitions between them.",
-    ["Only a page's static typography scale.", "Database writes performed by a deployed application."],
+    [
+      "Only a page's static typography scale.",
+      "Database writes performed by a deployed application.",
+    ],
     0,
   ),
   "t2000000-0000-0000-0000-000000000015": createVideoLesson(
@@ -843,7 +931,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What do variables add to a Figma prototype?",
     "State that can change and drive conditional behavior.",
-    ["Automatic production data persistence.", "A replacement for organizing the design's frames."],
+    [
+      "Automatic production data persistence.",
+      "A replacement for organizing the design's frames.",
+    ],
     1,
   ),
   "t2000000-0000-0000-0000-000000000016": createVideoLesson(
@@ -858,7 +949,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What is a design token?",
     "A named, reusable value for a design decision such as color or spacing.",
-    ["A screenshot exported from a prototype.", "A one-off value that cannot be reused."],
+    [
+      "A screenshot exported from a prototype.",
+      "A one-off value that cannot be reused.",
+    ],
     2,
   ),
   "t2000000-0000-0000-0000-000000000017": createVideoLesson(
@@ -873,7 +967,10 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What is Dev Mode primarily intended to support?",
     "Inspecting designs and coordinating developer handoff.",
-    ["Generating production-ready application code without review.", "Replacing usability research and testing."],
+    [
+      "Generating production-ready application code without review.",
+      "Replacing usability research and testing.",
+    ],
     0,
   ),
   "t2000000-0000-0000-0000-000000000018": createVideoLesson(
@@ -888,7 +985,32 @@ export const topicVideoLessons: Record<string, TopicVideoLesson> = {
     ],
     "What makes a usability testing task less biased?",
     "It describes the participant's goal without telling them which control to choose.",
-    ["It names the exact button to click in every step.", "It explains the expected answer before the task begins."],
+    [
+      "It names the exact button to click in every step.",
+      "It explains the expected answer before the task begins.",
+    ],
     1,
   ),
 };
+
+const quizSources = Object.entries(lessonSources).map(([topicId, lesson]) => ({
+  topicId,
+  topicTitle: lesson.videoTitle,
+  videoTitle: lesson.videoTitle,
+  takeaways: lesson.takeaways,
+}));
+
+export const topicVideoLessons: Record<string, TopicVideoLesson> =
+  Object.fromEntries(
+    Object.entries(lessonSources).map(([topicId, lesson]) => [
+      topicId,
+      {
+        ...lesson,
+        quiz: buildTopicVideoQuiz(
+          quizSources.find((source) => source.topicId === topicId)!,
+          quizSources,
+          lesson.quiz,
+        ),
+      },
+    ]),
+  );

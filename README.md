@@ -47,6 +47,9 @@ to the Supabase project (for example, in the SQL Editor). This table uses the
 client roadmap topic IDs, which are separate from the UUID topic records in the
 initial database seed.
 
+To store final roadmap exam scores and certificate completion, also apply
+[`db/migrations/20261017000000_roadmap_learning_progress.sql`](./db/migrations/20261017000000_roadmap_learning_progress.sql).
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

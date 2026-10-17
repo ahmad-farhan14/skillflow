@@ -8,6 +8,7 @@ import { ModuleAccordion } from "../../components/ModuleAccordion";
 import { QuickNotesCard } from "../../components/sidebar/QuickNotesCard";
 import { ResourcesCard } from "../../components/sidebar/ResourcesCard";
 import { ResourceReader } from "../../components/ResourceReader";
+import { FinalRoadmapQuiz } from "../../components/FinalRoadmapQuiz";
 import { RoadmapSwitcherModal } from "../../components/modals/RoadmapSwitcherModal";
 import { Topic } from "../../types";
 import {
@@ -92,7 +93,8 @@ export default function HomePage() {
                   : "border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
               }`}
             >
-              All Milestones <span className="ml-1 font-mono">{stats.totalTopics}</span>
+              All Milestones{" "}
+              <span className="ml-1 font-mono">{stats.totalTopics}</span>
             </button>
             <button
               onClick={() => setFilterStatus("remaining")}
@@ -112,7 +114,8 @@ export default function HomePage() {
                   : "border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
               }`}
             >
-              Completed <span className="ml-1 font-mono">{stats.completedTopics}</span>
+              Completed{" "}
+              <span className="ml-1 font-mono">{stats.completedTopics}</span>
             </button>
           </div>
 
@@ -145,7 +148,10 @@ export default function HomePage() {
           <div className="lg:col-span-8 space-y-4">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2">
-                <LayersIcon size={18} className="text-blue-600 dark:text-blue-400" />
+                <LayersIcon
+                  size={18}
+                  className="text-blue-600 dark:text-blue-400"
+                />
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                   Roadmap Modules{" "}
                   <span className="font-mono text-sm font-normal text-slate-500 dark:text-slate-400">
@@ -165,7 +171,9 @@ export default function HomePage() {
                   key={module.id}
                   module={module}
                   defaultExpanded={idx === 0 || idx === 1}
-                  onOpenTopic={(topic: Topic) => setActiveReaderTopicId(topic.id)}
+                  onOpenTopic={(topic: Topic) =>
+                    setActiveReaderTopicId(topic.id)
+                  }
                 />
               ))}
             </div>
@@ -180,18 +188,20 @@ export default function HomePage() {
             <ResourcesCard />
           </aside>
         </div>
+
+        <FinalRoadmapQuiz key={activeRoadmap.slug} />
       </main>
 
       {/* Footer */}
       <footer className="mt-16 border-t border-slate-200 dark:border-slate-800/80 bg-white/50 dark:bg-slate-900/50 py-8 text-center text-xs text-slate-500 dark:text-slate-400">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-800 dark:text-slate-200">SkillFlow</span>
+            <span className="font-bold text-slate-800 dark:text-slate-200">
+              SkillFlow
+            </span>
             <span>— Master Technical Skills with Curated Roadmaps</span>
           </div>
-          <div>
-            Built with Next.js App Router, Tailwind CSS & TypeScript.
-          </div>
+          <div>Built with Next.js App Router, Tailwind CSS & TypeScript.</div>
         </div>
       </footer>
 
